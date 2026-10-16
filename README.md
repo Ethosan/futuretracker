@@ -37,6 +37,19 @@ I built it to find out why my account kept going down. It showed me: the trades 
 
 Device-only trades stay in that one browser on that one web address. Use **Export CSV** in the Trade Log to back them up. To move to a sheet: export, connect the sheet in **Settings**, then **Import CSV**. Import skips trades whose id is already there.
 
+## Moving from Apps Script to Sign in with Google
+
+Needs the Google client ID set up first (see "Sign in with Google" below).
+
+1. Open the journal where your trades show up (the device with your Apps Script URL), online.
+2. **Settings → Where trades are kept → Move to Google sign-in.** Pick your Google account in the pop-up.
+3. It downloads a backup CSV of every trade, copies them to a private "Trade Journal" sheet in your Drive, checks every one arrived, then switches. If anything fails, nothing is switched and the message says why.
+4. A bar says how many trades moved. Open **Trade Log** and check the count matches.
+5. Last step, in the Apps Script editor: **Deploy → Manage deployments**, pick the web app, **Archive**. The old URL then stops working. The old sheet isn't changed; keep it as a backup or delete it later.
+6. Other devices: open the journal, Settings → Reset, then **Continue with Google**. It finds the same sheet.
+
+Going back, if something looks wrong before you archive: Settings → Sign out, then set up the Apps Script URL again. The old sheet still has everything, and the backup CSV can be imported anywhere. Screenshots that were on imgbb keep their imgbb links; delete them in your imgbb account if you don't want public copies.
+
 ## Installable app (PWA)
 
 - **Install:** Settings → App → **Install** (Chrome, Edge, Android). On iPhone or iPad: Safari → Share → Add to Home Screen; Settings says so on those devices. Home-screen shortcuts open Log a trade, Trade log and Stats.

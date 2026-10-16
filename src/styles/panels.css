@@ -122,7 +122,7 @@
 .script-setup[open] > summary .setup-h2::after { content: " −" }
 
 /* Other ways in: demo, this device, Apps Script */
-.paths { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px }
+.paths { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px }
 .path {
   display: flex; flex-direction: column; gap: 6px; text-align: left; text-decoration: none; color: var(--text);
   padding: 14px 16px; border: 1px solid var(--border2); border-radius: var(--radius); transition: border-color 0.15s, background 0.15s;

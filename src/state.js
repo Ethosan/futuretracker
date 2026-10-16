@@ -47,7 +47,7 @@ const kv = {
 
 let client = null;
 
-const OFFLINE_KEYS = ["tj_cache", "tj_outbox"];
+const OFFLINE_KEYS = ["tj_cache", "tj_outbox", "tj_moved"];
 
 /* Sheet modes get an offline layer: writes queue, loads fall back to the last copy. */
 function makeStore(cfg) {

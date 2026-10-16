@@ -6,7 +6,8 @@ import { tradeToRow } from "../lib/rows.js";
 import { LOCAL_TRADES_KEY } from "../lib/stores.js";
 import { deviceStore, screenshotToDrive } from "./images.js";
 import { googleEnabled, preloadGoogle, getToken, tokenExpired, signOut } from "../google-auth.js";
-import { escapeHtml, plural } from "../lib/format.js";
+import { escapeHtml, plural, localISODate } from "../lib/format.js";
+import { tradesToCsv } from "../lib/csv.js";
 import { $, toast, setSyncStatus, busy } from "./dom.js";
 import { renderCopyTraderTags } from "./form.js";
 import APPS_SCRIPT from "../../apps-script/Code.gs?raw";
@@ -105,6 +106,8 @@ async function moveToGoogle() {
       /* Never move a saved copy: it could be missing recent trades. */
       if (store().stale) throw new Error("Couldn't reach your current sheet, so nothing was moved. Check your connection and try again.");
       total = trades.length;
+      /* A backup on this device before anything moves. */
+      if (total) downloadCsv(trades, `trade-journal-backup-before-move-${localISODate()}.csv`);
       const { spreadsheetId } = await findOrCreateSheet({ getToken, onExpired: tokenExpired });
       const target = createGoogleStore({ spreadsheetId, getToken, onExpired: tokenExpired });
       await target.ensureHeaders();
@@ -135,9 +138,29 @@ async function moveToGoogle() {
     localStorage.removeItem(LOCAL_TRADES_KEY);
     deviceStore().clear().catch(() => {});
   }
-  toast(from === "sheet"
-    ? `Done. ${plural(moved, "trade")} moved to a private sheet. You can now delete the old Apps Script deployment.`
-    : `Done. ${plural(moved, "trade")} moved to a private sheet in your Google Drive.`);
+  showMoved({ from, moved, total });
+}
+
+function downloadCsv(trades, name) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([tradesToCsv(trades)], { type: "text/csv" }));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* After a move: a bar that stays until dismissed, with the last step. */
+const MOVED_KEY = "tj_moved";
+function showMoved(info) {
+  if (info) localStorage.setItem(MOVED_KEY, JSON.stringify(info));
+  let data = null;
+  try { data = JSON.parse(localStorage.getItem(MOVED_KEY)); } catch { /* none */ }
+  $("moved-banner").hidden = !data;
+  if (!data) return;
+  const already = data.total - data.moved;
+  $("moved-text").textContent = `${plural(data.total, "trade")} now in your private Google sheet` +
+    (already ? ` (${already} were already there).` : ".") +
+    (data.from === "sheet" ? " Last step: in the Apps Script editor, Deploy, then Manage deployments, then Archive the web app. Your old sheet isn't changed." : "");
 }
 
 /* --------------------------------------------------------------- settings */
@@ -251,6 +274,8 @@ export function initSettings({ connected, reconnect }) {
   onConnected = connected;
   onReconnect = reconnect;
   $("move-btn").addEventListener("click", moveToGoogle);
+  $("moved-dismiss").addEventListener("click", () => { localStorage.removeItem(MOVED_KEY); showMoved(); });
+  showMoved();
   /* Show the backend code without its header comment. */
   $("script-block").textContent = APPS_SCRIPT.replace(/^(\/\/.*\n)+\n?/, "").trim();
 
@@ -260,11 +285,13 @@ export function initSettings({ connected, reconnect }) {
   $("local-btn").addEventListener("click", startLocal);
   $("google-btn").addEventListener("click", startGoogle);
   if (googleEnabled()) {
+    /* New users never leave the app: Google makes the sheet, screenshots need no
+       key. The Apps Script setup (copy a script, deploy it, paste a URL, get an
+       imgbb key elsewhere) is only offered when Google sign-in isn't set up.
+       Existing Apps Script users keep working and can move in Settings. */
     $("google-start").hidden = false;
-    $("script-path").querySelector(".path-title").textContent = "Use your own Apps Script";
-    $("script-path").querySelector(".path-desc").textContent = "The older way. You set up the sheet and script yourself. About five minutes.";
-    $("sheet-setup").textContent = "Use your own Apps Script";
-    $("script-details").open = false;
+    $("script-path").hidden = true;
+    $("script-details").hidden = true;
     preloadGoogle()?.catch(() => {});
   }
   $("script-path").addEventListener("click", () => { $("script-details").open = true; });
