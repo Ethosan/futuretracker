@@ -13,7 +13,7 @@ const sheetCalls = vi.hoisted(() => ({ create: 0, calls: [] }));
 vi.mock("../src/lib/sheets.js", () => ({
   createSheetClient: url => {
     sheetCalls.create++;
-    const hit = name => async () => { sheetCalls.calls.push(name + " " + url); return { values: [] }; };
+    const hit = name => async () => { sheetCalls.calls.push(name + " " + url); return name === "loadTrades" ? [] : { status: "ok" }; };
     return { ensureHeaders: hit("ensureHeaders"), loadTrades: hit("loadTrades"), append: hit("append"), update: hit("update") };
   },
 }));

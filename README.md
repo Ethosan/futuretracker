@@ -37,6 +37,14 @@ I built it to find out why my account kept going down. It showed me: the trades 
 
 Device-only trades stay in that one browser on that one web address. Use **Export CSV** in the Trade Log to back them up. To move to a sheet: export, connect the sheet in **Settings**, then **Import CSV**. Import skips trades whose id is already there.
 
+## Installable app (PWA)
+
+- **Install:** Settings → App → **Install** (Chrome, Edge, Android). On iPhone or iPad: Safari → Share → Add to Home Screen; Settings says so on those devices. Home-screen shortcuts open Log a trade, Trade log and Stats.
+- **Works offline:** the service worker saves every file of the build on install, so the app opens with no signal. It is generated at build time by `vite.config.js` from `src/sw.js`, with the file list and a version hash. It never touches trade data: Google, Apps Script and imgbb are other origins.
+- **Logging offline (Google sheet modes):** saves, edits and deletes with no connection, or after Google sign-in runs out, wait in an outbox (`src/lib/offline.js`) and go to the sheet in order when you're back. The Trade Log marks them "not synced" and the status line counts them. The last loaded trades are kept so the app opens offline. Both are removed on sign out, which warns if anything hasn't synced. Device and demo modes are already offline.
+- **Updates:** a new version downloads in the background and a "New version ready" bar offers Reload, so a half-typed trade is never lost to a surprise refresh.
+- **Back button and links:** each screen has its own address (`#stats`, `#trade-log`...), so the back button works in the installed app and links open the right screen.
+
 ## Security and privacy
 
 - **No server of ours.** Trades go straight from the browser to the user's own Google Drive, their own Apps Script, or their own browser storage.
@@ -114,7 +122,8 @@ src/
     settings.js         setup screen and Settings
     dom.js              toast, sync status, small helpers
   styles/               tokens, base, shell, form, views, panels
-public/                 icons, manifest, service worker
+  sw.js                 service worker source (built into /sw.js by vite.config.js)
+public/                 icons, manifest, install screenshots, privacy page
 tests/                  Vitest tests for src/lib
 ```
 

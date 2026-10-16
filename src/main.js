@@ -6,7 +6,9 @@ import "./styles/views.css";
 import "./styles/panels.css";
 
 import { CACHE_TTL } from "./config.js";
-import { S, initState, store, storageMode, findTrade } from "./state.js";
+import { S, initState, store, storageMode, findTrade, pendingChanges } from "./state.js";
+import { isOffline } from "./lib/offline.js";
+import { initPwa } from "./ui/pwa.js";
 import { localISODate, money } from "./lib/format.js";
 import { $, toast, setSyncStatus, busy } from "./ui/dom.js";
 import { forgetScreenshot } from "./ui/images.js";
@@ -49,7 +51,7 @@ async function loadTrades(force = false) {
       if (first && S.trades.length && !S.trades.some(t => t.date?.startsWith(String(S.heatmapYear)))) {
         S.heatmapYear = +S.trades.reduce((a, t) => (t.date > a ? t.date : a), "").slice(0, 4) || S.heatmapYear;
       }
-      setSyncStatus("ok", remote() ? "Synced · " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : syncLabel());
+      showSyncState();
     } catch (e) {
       setSyncStatus("err", e.name === "NeedsSignIn" ? "Sign in needed" : "Sync failed");
       if (e.name !== "NeedsSignIn") toast("Couldn't load trades. Check your connection.", true);
@@ -61,12 +63,38 @@ async function loadTrades(force = false) {
   return loading;
 }
 
+/* Status line: synced, offline with a saved copy, or changes waiting. */
+function showSyncState() {
+  const waiting = pendingChanges();
+  if (store()?.stale) setSyncStatus("err", "Offline · saved copy" + (waiting ? ` · ${waiting} to sync` : ""));
+  else if (waiting) setSyncStatus("loading", `${waiting} change${waiting === 1 ? "" : "s"} to sync`);
+  else setSyncStatus("ok", remote() ? "Synced · " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : syncLabel());
+}
+
+/* Back online: send what was saved offline, then reload. */
+async function syncNow() {
+  if (!store()?.flush || !navigator.onLine) return;
+  const before = pendingChanges();
+  const res = await store().flush().catch(() => null);
+  await loadTrades(true);
+  renderCurrent();
+  if (res?.sent) toast(`Back online. ${res.sent} change${res.sent === 1 ? "" : "s"} saved to your sheet.`);
+  if (res?.dropped?.length) toast(`${res.dropped.length} offline change${res.dropped.length === 1 ? "" : "s"} couldn't be applied: ${res.dropped[0].error}`, true);
+  else if (before && !res) showSyncState();
+}
+
 function renderCurrent() {
   RENDER[current]?.();
 }
 
 /* ------------------------------------------------------------- navigation */
-async function goTo(view) {
+/* Each screen has its own address (#stats), so the back button and
+   home-screen shortcuts work. */
+const VIEWS = ["log-trade", "trade-log", "stats", "charts", "review", "heatmap"];
+const viewFromHash = () => (VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : null);
+
+async function goTo(view, { push = true } = {}) {
+  if (push && location.hash !== "#" + view) history.pushState(null, "", "#" + view);
   current = view;
   document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "view-" + view));
   document.querySelectorAll(".nav-item[data-view]").forEach(n => {
@@ -100,13 +128,14 @@ async function deleteTrade(id) {
   const what = `${t.instrument || "Trade"} ${t.date} ${money(t.netPnl)}`;
   if (!confirm(`Delete this trade? ${what}\n\nThis can't be undone.`)) return;
   try {
-    await busy($("review-delete"), "Deleting", () => store().remove(t.id));
+    const res = await busy($("review-delete"), "Deleting", () => store().remove(t.id));
     S.trades = S.trades.filter(x => x.id !== t.id);
+    if (res?.status === "queued") showSyncState();
     forgetScreenshot(t.chart);
     if (S.editingId === t.id) cancelEdit();
     closeDetail();
     renderCurrent();
-    toast("Trade deleted.");
+    toast(res?.status === "queued" ? "Deleted here. Your sheet updates when you're back online." : "Trade deleted.");
   } catch (e) {
     toast("Couldn't delete it. " + e.message, true);
   }
@@ -124,7 +153,7 @@ function showApp() {
     .then(() => { setSyncStatus("ok", remote() ? "Connected" : syncLabel()); return loadTrades(true); })
     .then(renderCurrent)
     .catch(e => {
-      if (e.name === "NeedsSignIn") { setSyncStatus("err", "Sign in needed"); return; }
+      if (e.name === "NeedsSignIn" || isOffline(e)) { loadTrades(true).then(renderCurrent); return; }
       setSyncStatus("err", "Connection failed");
       toast("Couldn't connect. Check your Apps Script URL and deployment.", true);
     });
@@ -170,9 +199,15 @@ $("reauth-btn").addEventListener("click", async () => {
   }
 });
 
-if (storageMode()) showApp();
-else $("setup-screen").hidden = false;
+addEventListener("popstate", () => { const v = viewFromHash(); if (v && v !== current) goTo(v, { push: false }); });
+addEventListener("online", syncNow);
+addEventListener("tj:changed", showSyncState);
+initPwa({ remote });
 
-if ("serviceWorker" in navigator && import.meta.env.PROD) {
-  addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+if (storageMode()) {
+  showApp();
+  const start = viewFromHash();
+  if (start && start !== "log-trade") goTo(start, { push: false });
+} else {
+  $("setup-screen").hidden = false;
 }

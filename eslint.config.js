@@ -12,7 +12,7 @@ export default [
     },
   },
   {
-    files: ["public/sw.js"],
+    files: ["src/sw.js"],
     languageOptions: { sourceType: "script", globals: globals.serviceworker },
   },
   {

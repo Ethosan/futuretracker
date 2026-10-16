@@ -63,7 +63,7 @@ function rowHtml(t) {
     <td class="col-setup">${setup}</td>
     <td class="num strong nowrap ${pnlClass(t.netPnl)}">${money(t.netPnl)}</td>
     <td class="num col-r ${r == null ? "dim" : pnlClass(r)}">${r == null ? "—" : (r >= 0 ? "+" : "") + r.toFixed(2) + "R"}</td>
-    <td><span class="out-tag ${outcomeClass(t.outcome)}">${escapeHtml(t.outcome || "—")}</span></td>
+    <td><span class="out-tag ${outcomeClass(t.outcome)}">${escapeHtml(t.outcome || "—")}</span>${t.pending ? ' <span class="pending" title="Not in your sheet yet. Sends when you\'re back online.">not synced</span>' : ""}</td>
     <td class="dim col-session">${escapeHtml(t.session || "—")}</td>
     <td>${t.mistake && t.mistake !== "None" ? `<span class="chip chip-mistake">${escapeHtml(t.mistake)}</span>` : dash}</td>
   </tr>`;

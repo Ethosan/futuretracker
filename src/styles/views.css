@@ -30,6 +30,7 @@
 .out-w { color: var(--accent) }
 .out-l { color: var(--red) }
 .out-be { color: var(--amber) }
+.pending { font-size: var(--fs-xs); color: var(--blue); white-space: nowrap }
 .empty-state { text-align: center; padding: 48px 16px; color: var(--muted); font-size: var(--fs-xs); letter-spacing: 0.04em }
 
 /* Stats */

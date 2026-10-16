@@ -169,13 +169,16 @@ async function submit() {
   const row = readForm(editing || Date.now().toString());
   setSyncStatus("loading", editing ? "Updating..." : "Saving...");
   try {
-    await busy($("save-btn"), editing ? "Updating" : "Saving", () => (editing ? store().update(row) : store().append(row)));
-    const trade = normalizeTrade(row);
+    const res = await busy($("save-btn"), editing ? "Updating" : "Saving", () => (editing ? store().update(row) : store().append(row)));
+    const queued = res?.status === "queued";
+    const trade = { ...normalizeTrade(row), ...(queued ? { pending: true } : {}) };
     const idx = S.trades.findIndex(t => t.id === trade.id);
     if (idx >= 0) S.trades[idx] = trade; else S.trades.push(trade);
     const where = { demo: " Demo, so this tab only.", local: " On this device." }[storageMode()] || "";
-    toast((editing ? "Trade updated." : "Trade saved.") + where);
-    setSyncStatus("ok", syncLabel());
+    toast(queued
+      ? (editing ? "Updated here." : "Saved here.") + " It goes to your sheet when you're back online."
+      : (editing ? "Trade updated." : "Trade saved.") + where);
+    if (queued) dispatchEvent(new Event("tj:changed")); else setSyncStatus("ok", syncLabel());
     exitEditMode();
     onSaved();
   } catch (e) {

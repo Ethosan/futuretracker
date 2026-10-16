@@ -1,6 +1,6 @@
 /* Setup screen (first run) and the Settings sheet. */
 import { TIMEZONES } from "../config.js";
-import { S, saveConfig, clearConfig, forgetDevice, getCopyTraders, setCopyTraders, store, storageMode } from "../state.js";
+import { S, saveConfig, clearConfig, forgetDevice, getCopyTraders, setCopyTraders, store, storageMode, pendingChanges } from "../state.js";
 import { findOrCreateSheet, createGoogleStore, sheetUrl } from "../lib/google.js";
 import { tradeToRow } from "../lib/rows.js";
 import { LOCAL_TRADES_KEY } from "../lib/stores.js";
@@ -95,6 +95,11 @@ async function moveToGoogle() {
     await busy(btn, "Signing in", async () => {
       const say = text => { btn.firstChild.textContent = text; };
       await getToken({ interactive: true });
+      if (store().flush) {
+        say("Sending offline changes");
+        const left = (await store().flush()).left;
+        if (left) throw new Error(`${left} offline change${left === 1 ? " is" : "s are"} still waiting. Go online and try again.`);
+      }
       say("Reading your trades");
       const trades = await store().loadTrades();
       total = trades.length;
@@ -114,6 +119,7 @@ async function moveToGoogle() {
       const arrived = new Set((await target.loadTrades()).map(t => t.id));
       if (!trades.every(t => arrived.has(t.id))) throw new Error("Some trades didn't arrive. Nothing was switched, so try again.");
       moved = rows.length;
+      store().forget?.(); // the old sheet's offline copy and outbox
       saveConfig({ mode: "google", spreadsheetId, timezone: S.cfg.timezone || "" });
     });
   } catch (e) {
@@ -276,6 +282,8 @@ export function initSettings({ connected, reconnect }) {
   });
   $("reset-btn").addEventListener("click", () => {
     const google = storageMode() === "google";
+    const waiting = pendingChanges();
+    if (waiting && !confirm(`${waiting} change${waiting === 1 ? " hasn't" : "s haven't"} reached your sheet yet (made offline). They'll be lost. Continue anyway?`)) return;
     const msg = google
       ? "Sign out of Google on this device? Your journal stays in your Google Drive."
       : "This clears the stored connection from this device. Your trades in Google Sheets are safe. Continue?";

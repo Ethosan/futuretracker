@@ -7,6 +7,10 @@
 <meta name="description" content="A personal futures trading journal for MES, MNQ, MGC and XAUUSD. Saves to your own Google Sheet or this device. Try the demo.">
 <meta name="theme-color" content="#141414">
 <meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Journal">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icon-192.png">
@@ -145,6 +149,13 @@
       <div class="demo-banner" id="demo-banner" role="status" hidden>
         <p><b>Demo data.</b> <span class="demo-long">Made-up trades. You can log and edit, but changes only last until you close this tab.</span><span class="demo-short">Edits stay in this tab.</span></p>
         <button type="button" class="btn-small" id="exit-demo">Exit demo</button>
+      </div>
+      <div class="demo-banner info-banner" id="update-banner" role="status" hidden>
+        <p><b>New version ready.</b> <span>Reload to use it.</span></p>
+        <button type="button" class="btn-small" id="update-btn">Reload</button>
+      </div>
+      <div class="demo-banner info-banner" id="offline-banner" role="status" hidden>
+        <p><b>Offline.</b> <span class="demo-long">New trades and edits are kept here and sent to your sheet when you're back online.</span><span class="demo-short">Changes sync when you're back online.</span></p>
       </div>
       <div class="demo-banner" id="auth-banner" role="status" hidden>
         <p><b>Signed out of Google.</b> <span>Sign in to load and save your trades.</span></p>
@@ -527,6 +538,16 @@
           <input class="settings-input grow" id="set-ct-new" type="text" placeholder="Add name (e.g. OBI, ATrades...)" aria-label="New copy trader">
           <button type="button" class="btn btn-ghost" id="set-ct-add">+ Add</button>
         </div>
+      </section>
+
+      <section class="settings-section">
+        <h3 class="settings-section-lbl">App</h3>
+        <div class="settings-row" id="install-row" hidden>
+          <div><div class="settings-row-lbl">Install on this device</div><div class="settings-row-sub">Opens like an app, works offline</div></div>
+          <button type="button" class="btn btn-ghost" id="install-btn">Install</button>
+        </div>
+        <p class="hint" id="ios-install" hidden>To install on iPhone or iPad: open this page in Safari, tap Share, then Add to Home Screen.</p>
+        <p class="hint">Works offline once opened. Trades you log offline are sent when you're back online.</p>
       </section>
 
       <section class="settings-section">

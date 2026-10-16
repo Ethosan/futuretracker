@@ -10,6 +10,7 @@
 import { createSheetClient } from "./lib/sheets.js";
 import { createLocalStore, createMemoryStore } from "./lib/stores.js";
 import { createGoogleStore } from "./lib/google.js";
+import { withOffline } from "./lib/offline.js";
 import { getToken, tokenExpired } from "./google-auth.js";
 import { generateDemoRows, DEMO_CONFIG, DEMO_COPY_TRADERS, DEMO_YEAR } from "./lib/demo.js";
 
@@ -46,12 +47,18 @@ const kv = {
 
 let client = null;
 
+const OFFLINE_KEYS = ["tj_cache", "tj_outbox"];
+
+/* Sheet modes get an offline layer: writes queue, loads fall back to the last copy. */
 function makeStore(cfg) {
   if (cfg?.mode === "local") return createLocalStore();
-  if (cfg?.mode === "google") return createGoogleStore({ spreadsheetId: cfg.spreadsheetId, getToken, onExpired: tokenExpired });
-  if (cfg?.scriptUrl) return createSheetClient(cfg.scriptUrl);
+  if (cfg?.mode === "google") return withOffline(createGoogleStore({ spreadsheetId: cfg.spreadsheetId, getToken, onExpired: tokenExpired }), { storage: localStorage });
+  if (cfg?.scriptUrl) return withOffline(createSheetClient(cfg.scriptUrl), { storage: localStorage });
   return null;
 }
+
+/* Changes made offline that haven't reached the sheet yet. */
+export const pendingChanges = () => store()?.outbox?.size() || 0;
 
 /* Call once at boot, before anything reads S.cfg or the store. */
 export function initState({ demo = false } = {}) {
@@ -84,6 +91,7 @@ export function saveConfig(cfg) {
 
 export function clearConfig() {
   kv.remove(CFG_KEY);
+  if (!S.demo) OFFLINE_KEYS.forEach(k => localStorage.removeItem(k));
 }
 
 export const getCopyTraders = () => kv.get(CT_KEY, []);
@@ -91,7 +99,7 @@ export const setCopyTraders = list => kv.set(CT_KEY, list);
 
 /* Signing out of Google on a shared computer: remove this app's settings. */
 export function forgetDevice() {
-  kv.remove(CFG_KEY);
+  clearConfig();
   kv.remove(CT_KEY);
 }
 

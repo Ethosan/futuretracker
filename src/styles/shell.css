@@ -44,6 +44,8 @@
 .demo-banner .btn-small { color: var(--amber); border-color: rgba(255, 193, 102, 0.45); white-space: nowrap; flex-shrink: 0 }
 .demo-banner .btn-small:hover { border-color: var(--amber) }
 .demo-short { display: none }
+.info-banner { color: var(--blue); background: #16222b; border-bottom-color: rgba(126, 200, 247, 0.3) }
+.info-banner .btn-small { color: var(--blue); border-color: rgba(126, 200, 247, 0.45) }
 .view { display: none; padding: 28px 32px; max-width: 1400px }
 .view.active { display: block }
 
