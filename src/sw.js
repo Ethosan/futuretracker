@@ -33,13 +33,16 @@ self.addEventListener("fetch", e => {
   if (url.origin !== location.origin && !FONTS.has(url.hostname)) return;
 
   if (req.mode === "navigate") {
+    /* The app is one page: "/" (with ?demo or #view). Only it refreshes the
+       offline copy; other pages (privacy.html) are cached under their own URL. */
+    const app = url.pathname === "/" || url.pathname === "/index.html";
     e.respondWith(
       fetch(req)
         .then(res => {
-          if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put("/", copy)); }
+          if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(app ? "/" : url.pathname, copy)); }
           return res;
         })
-        .catch(() => caches.match("/"))
+        .catch(() => caches.match(app ? "/" : url.pathname).then(hit => hit || caches.match("/")))
     );
     return;
   }

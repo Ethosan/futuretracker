@@ -18,6 +18,9 @@ function serviceWorker() {
       const files = ["/", ...built, ...publicFiles("public").filter(f => !f.startsWith("/screenshots/"))];
       const hash = createHash("sha256");
       for (const f of Object.values(bundle)) hash.update(f.type === "chunk" ? f.code : f.source);
+      /* index.html is written after this hook, so hash its source; public/ files too. */
+      hash.update(readFileSync("index.html"));
+      for (const f of publicFiles("public")) hash.update(f).update(readFileSync(join("public", f)));
       const version = hash.digest("hex").slice(0, 12);
       const source = `const PRECACHE = ${JSON.stringify(files)};\nconst VERSION = "${version}";\n` + readFileSync("src/sw.js", "utf8");
       this.emitFile({ type: "asset", fileName: "sw.js", source });

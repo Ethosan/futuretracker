@@ -41,10 +41,12 @@ function addLeg(type, price, contracts, focus = true) {
   if (focus) row.querySelector(".leg-price").focus();
 }
 
-/* A leg with a price but no lots uses the Contracts field (or 1), so a
-   one-leg trade only needs the price typed. */
+/* A leg with a price but no lots uses the Contracts field if you typed one
+   (or 1), so a one-leg trade only needs the price. Once typed, Contracts is
+   yours: recalc stops overwriting it, so the two can't feed each other. */
+let contractsTyped = false;
 function readLegs(type) {
-  const fallback = parseInt($("f-contracts").value, 10) || 1;
+  const fallback = (contractsTyped && parseInt($("f-contracts").value, 10)) || 1;
   return [...document.querySelectorAll(`#${type}-legs .leg-row`)]
     .map(r => ({ price: parseFloat(r.querySelector(".leg-price").value), contracts: parseInt(r.querySelector(".leg-contracts").value, 10) || fallback }))
     .filter(l => l.price > 0 && l.contracts > 0);
@@ -83,7 +85,7 @@ export function recalc() {
     commission: $("f-commission").value,
   });
   last = r;
-  if (entryLegs.length) $("f-contracts").value = r.contracts;
+  if (entryLegs.length && !contractsTyped) $("f-contracts").value = r.contracts;
   setDerived("f-ticksRisk", r.ticks != null ? r.ticks.toFixed(2) + " pts" : "");
   setDerived("f-maxRisk", r.maxRisk != null ? "$" + r.maxRisk.toFixed(2) : "");
   setDerived("f-rr", r.rr != null ? "1 : " + r.rr.toFixed(2) : "");
@@ -189,6 +191,7 @@ async function submit() {
 
 export function clearForm() {
   showErrors([]);
+  contractsTyped = false;
   for (const el of [...Object.values(FIELDS), ...DERIVED, "f-strat-custom", "f-notes"]) {
     $(el).value = "";
     $(el).classList.remove("pos", "neg");
@@ -344,6 +347,7 @@ export function initForm({ afterSave }) {
     });
   }
 
+  $("f-contracts").addEventListener("input", () => { contractsTyped = $("f-contracts").value !== ""; });
   for (const id of ["f-instrument", "f-dir", "f-contracts", "f-stop", "f-target", "f-commission"]) {
     $(id).addEventListener("input", recalc);
   }

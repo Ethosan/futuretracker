@@ -1,6 +1,6 @@
 /* Setup screen (first run) and the Settings sheet. */
 import { TIMEZONES } from "../config.js";
-import { S, saveConfig, clearConfig, forgetDevice, getCopyTraders, setCopyTraders, store, storageMode, pendingChanges } from "../state.js";
+import { S, saveConfig, clearConfig, forgetDevice, forgetOffline, getCopyTraders, setCopyTraders, store, storageMode, pendingChanges } from "../state.js";
 import { findOrCreateSheet, createGoogleStore, sheetUrl } from "../lib/google.js";
 import { tradeToRow } from "../lib/rows.js";
 import { LOCAL_TRADES_KEY } from "../lib/stores.js";
@@ -102,6 +102,8 @@ async function moveToGoogle() {
       }
       say("Reading your trades");
       const trades = await store().loadTrades();
+      /* Never move a saved copy: it could be missing recent trades. */
+      if (store().stale) throw new Error("Couldn't reach your current sheet, so nothing was moved. Check your connection and try again.");
       total = trades.length;
       const { spreadsheetId } = await findOrCreateSheet({ getToken, onExpired: tokenExpired });
       const target = createGoogleStore({ spreadsheetId, getToken, onExpired: tokenExpired });
@@ -219,6 +221,12 @@ function saveSettings({ onReconnect }) {
     if (!validUrl(scriptUrl)) { toast("That doesn't look like an Apps Script web app URL.", true); return; }
     if (mode === "local" && !confirm("Switch to this Google Sheet? Trades on this device stay here. Export a CSV first if you want to import them into the sheet.")) return;
     reconnect = scriptUrl !== S.cfg.scriptUrl || mode === "local";
+    /* Offline changes and the saved copy belong to the old sheet. */
+    if (reconnect && mode === "sheet") {
+      const waiting = pendingChanges();
+      if (waiting && !confirm(`${waiting} change${waiting === 1 ? " hasn't" : "s haven't"} reached your old sheet yet. Switching sheets drops ${waiting === 1 ? "it" : "them"}. Continue?`)) return;
+      forgetOffline();
+    }
     saveConfig({ ...sheetConfig(S.cfg), ...prefs, scriptUrl });
   }
 

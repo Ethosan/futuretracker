@@ -30,7 +30,8 @@ export function renderHeatmap() {
   const first = trades.reduce((a, t) => (t.date && (!a || t.date < a) ? t.date : a), "");
   const now = new Date();
   const from = first.startsWith(String(year)) ? +first.slice(5, 7) - 1 : 0;
-  const to = year === now.getFullYear() ? now.getMonth() : 11;
+  const last = Object.keys(days).sort().pop();
+  const to = year === now.getFullYear() ? Math.max(now.getMonth(), last ? +last.slice(5, 7) - 1 : 0) : 11;
   const shown = (_, mi) => mi >= from && mi <= to;
 
   const maxAbs = Math.max(...Object.values(days).map(d => Math.abs(d.pnl)), 1);

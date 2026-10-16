@@ -74,14 +74,16 @@ function showSyncState() {
 /* Back online: send what was saved offline, then reload. */
 async function syncNow() {
   if (!store()?.flush || !navigator.onLine) return;
-  const before = pendingChanges();
-  const res = await store().flush().catch(() => null);
+  await store().flush().catch(() => null);
   await loadTrades(true);
   renderCurrent();
-  if (res?.sent) toast(`Back online. ${res.sent} change${res.sent === 1 ? "" : "s"} saved to your sheet.`);
-  if (res?.dropped?.length) toast(`${res.dropped.length} offline change${res.dropped.length === 1 ? "" : "s"} couldn't be applied: ${res.dropped[0].error}`, true);
-  else if (before && !res) showSyncState();
 }
+
+/* Every sync of offline changes, whenever it happens, says what it did. */
+addEventListener("tj:flushed", ({ detail: res }) => {
+  if (res.dropped.length) toast(`${res.dropped.length} offline change${res.dropped.length === 1 ? "" : "s"} couldn't be applied: ${res.dropped[0].error}`, true);
+  else if (res.sent) toast(`Back online. ${res.sent} change${res.sent === 1 ? "" : "s"} saved to your sheet.`);
+});
 
 function renderCurrent() {
   RENDER[current]?.();

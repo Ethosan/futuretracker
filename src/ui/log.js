@@ -127,11 +127,13 @@ async function importCsv(file) {
   let done = 0;
   try {
     await busy($("import-btn"), "Importing", async () => {
-      for (const row of fresh) {
-        await store().append(row);
-        S.trades.push(normalizeTrade(row));
-        done++;
+      if (store().appendMany) {
+        await store().appendMany(fresh);
+        done = fresh.length;
+      } else {
+        for (const row of fresh) { await store().append(row); done++; }
       }
+      S.trades.push(...fresh.map(normalizeTrade));
     });
     toast(`Imported ${plural(done, "trade")}.`);
   } catch {

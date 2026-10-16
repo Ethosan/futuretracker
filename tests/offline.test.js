@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createOutbox, applyOutbox, withOffline, isOffline } from "../src/lib/offline.js";
+import { createOutbox, applyOutbox, withOffline, isOffline, NetworkError } from "../src/lib/offline.js";
 import { createMemoryStore } from "../src/lib/stores.js";
 import { NeedsSignIn } from "../src/lib/google.js";
 import { generateDemoRows } from "../src/lib/demo.js";
@@ -16,7 +16,7 @@ function flaky(rows = []) {
   const inner = createMemoryStore(rows);
   const s = { online: true, signedIn: true, kind: "google" };
   const gate = fn => async (...args) => {
-    if (!s.online) throw new TypeError("Failed to fetch");
+    if (!s.online) throw new NetworkError();
     if (!s.signedIn) throw new NeedsSignIn();
     return fn(...args);
   };
@@ -38,8 +38,10 @@ describe("outbox", () => {
   });
 
   it("knows what counts as offline", () => {
-    expect(isOffline(new TypeError("Failed to fetch"))).toBe(true);
-    expect(isOffline(new Error("Timeout"))).toBe(true);
+    expect(isOffline(new NetworkError())).toBe(true);
+    // a bug or a slow server is not "offline": those should fail loudly, not block the outbox
+    expect(isOffline(new TypeError("x is undefined"))).toBe(false);
+    expect(isOffline(new Error("Timeout"))).toBe(false);
     expect(isOffline(new Error("Trade not found"))).toBe(false);
   });
 
@@ -104,5 +106,71 @@ describe("working offline", () => {
     expect(storage.keys()).toContain("tj_cache");
     s.forget();
     expect(storage.keys()).toEqual([]);
+  });
+
+  it("two syncs at once send each change once", async () => {
+    const net = flaky([]);
+    const s = withOffline(net, { storage: fakeStorage() });
+    net.online = false;
+    await s.append(b);
+    await s.append(c);
+    net.online = true;
+    const [r1, r2] = await Promise.all([s.flush(), s.flush()]);
+    expect(r1).toBe(r2);
+    expect((await net.loadTrades()).map(t => t.id)).toEqual([b.id, c.id]);
+  });
+
+  it("a queued trade that already reached the sheet isn't added twice", async () => {
+    const net = flaky([]);
+    const s = withOffline(net, { storage: fakeStorage() });
+    s.outbox.add({ op: "append", row: b }); // as if the reply was lost after the sheet saved it
+    await net.append(b);
+    await s.flush();
+    expect((await net.loadTrades()).map(t => t.id)).toEqual([b.id]);
+  });
+
+  it("editing or deleting a trade that hasn't synced yet works while online", async () => {
+    const net = flaky([]);
+    const s = withOffline(net, { storage: fakeStorage() });
+    net.online = false;
+    await s.append(b);
+    net.online = true;
+    expect(await s.update({ ...b, netPnl: "3.00" })).toEqual({ status: "queued" });
+    await s.flush();
+    expect((await net.loadTrades())[0].netPnl).toBe(3);
+    net.online = false;
+    await s.append(c);
+    net.online = true;
+    await s.remove(c.id);
+    expect(s.outbox.size()).toBe(0);
+  });
+
+  it("a real error is not queued, and every flush is reported", async () => {
+    const reports = [];
+    const net = flaky([a]);
+    const realUpdate = net.update;
+    net.update = async () => { throw new TypeError("bug"); };
+    const s = withOffline(net, { storage: fakeStorage(), onFlush: r => reports.push(r) });
+    await expect(s.update(a)).rejects.toThrow("bug");
+    expect(s.outbox.size()).toBe(0);
+    net.update = realUpdate;
+    net.online = false;
+    await s.append(b);
+    net.online = true;
+    await s.loadTrades(); // the load flushes first
+    expect(reports).toEqual([{ sent: 1, dropped: [], left: 0 }]);
+  });
+
+  it("imports many rows in one request, or queues them all offline", async () => {
+    const net = flaky([]);
+    let calls = 0;
+    net.appendMany = async rows => { calls++; for (const r of rows) await net.append(r); };
+    const s = withOffline(net, { storage: fakeStorage() });
+    await s.appendMany([a, b]);
+    expect(calls).toBe(1);
+    net.online = false;
+    net.appendMany = async () => { throw new NetworkError(); };
+    expect(await s.appendMany([c])).toEqual({ status: "queued" });
+    expect(s.outbox.size()).toBe(1);
   });
 });

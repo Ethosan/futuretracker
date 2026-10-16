@@ -52,8 +52,9 @@ const OFFLINE_KEYS = ["tj_cache", "tj_outbox"];
 /* Sheet modes get an offline layer: writes queue, loads fall back to the last copy. */
 function makeStore(cfg) {
   if (cfg?.mode === "local") return createLocalStore();
-  if (cfg?.mode === "google") return withOffline(createGoogleStore({ spreadsheetId: cfg.spreadsheetId, getToken, onExpired: tokenExpired }), { storage: localStorage });
-  if (cfg?.scriptUrl) return withOffline(createSheetClient(cfg.scriptUrl), { storage: localStorage });
+  const offline = { storage: localStorage, onFlush: res => dispatchEvent(new CustomEvent("tj:flushed", { detail: res })) };
+  if (cfg?.mode === "google") return withOffline(createGoogleStore({ spreadsheetId: cfg.spreadsheetId, getToken, onExpired: tokenExpired }), offline);
+  if (cfg?.scriptUrl) return withOffline(createSheetClient(cfg.scriptUrl), offline);
   return null;
 }
 
@@ -89,9 +90,14 @@ export function saveConfig(cfg) {
   if (!S.demo) client = makeStore(cfg);
 }
 
+/* The offline copy and outbox belong to one sheet: drop them when it changes. */
+export function forgetOffline() {
+  if (!S.demo) OFFLINE_KEYS.forEach(k => localStorage.removeItem(k));
+}
+
 export function clearConfig() {
   kv.remove(CFG_KEY);
-  if (!S.demo) OFFLINE_KEYS.forEach(k => localStorage.removeItem(k));
+  forgetOffline();
 }
 
 export const getCopyTraders = () => kv.get(CT_KEY, []);

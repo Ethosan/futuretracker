@@ -4,6 +4,7 @@
    and nothing else in the user's Drive. Same shape as the other stores. */
 import { COLS } from "../config.js";
 import { rowsToTrades } from "./rows.js";
+import { NetworkError } from "./offline.js";
 
 const SHEETS = "https://sheets.googleapis.com/v4/spreadsheets";
 const DRIVE = "https://www.googleapis.com/drive/v3/files";
@@ -26,7 +27,8 @@ function api(getToken, f, onExpired = () => {}) {
     const headers = { Authorization: "Bearer " + token };
     if (body) headers["Content-Type"] = "application/json";
     if (type) headers["Content-Type"] = type;
-    const res = await f(url, { method, headers, body: raw ?? (body ? JSON.stringify(body) : undefined) });
+    const res = await f(url, { method, headers, body: raw ?? (body ? JSON.stringify(body) : undefined) })
+      .catch(() => { throw new NetworkError(); });
     if (res.status === 401) { onExpired(); throw new NeedsSignIn(); }
     if (!res.ok) {
       let msg = "Google returned " + res.status;

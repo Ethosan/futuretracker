@@ -14,6 +14,10 @@ function rowStore(read, write, kind) {
       write([...read(), pickColumns(row)]);
       return { status: "ok" };
     },
+    async appendMany(rows) {
+      write([...read(), ...rows.map(pickColumns)]);
+      return { status: "ok" };
+    },
     async update(row) {
       const rows = read();
       const i = rows.findIndex(r => String(r.id) === String(row.id));
