@@ -6,7 +6,7 @@ A personal futures trading journal for **MES, MNQ, MGC and XAUUSD**. Trades are 
 
 I built it to find out why my account kept going down. It showed me: the trades where I broke a rule lost more than the clean ones made.
 
-**Live:** [futuretracker.netlify.app](https://futuretracker.netlify.app). Add [`?demo`](https://futuretracker.netlify.app/?demo) to try it with sample data.
+**Live:** [futuretracker.ethantam.dev](https://futuretracker.ethantam.dev). Add [`?demo`](https://futuretracker.ethantam.dev/?demo) to try it with sample data.
 
 - **Log trades** with scale-in / scale-out legs. Average entry, points and dollars risked, planned R:R, gross and net P&L, and the **R multiple** are worked out as you type.
 - **Tag everything:** strategies (multi-select), copy trader, session, market condition, confidence, emotion, mistakes, a screenshot (drag, drop or paste; uploaded to imgbb) and written review notes.
@@ -22,7 +22,7 @@ I built it to find out why my account kept going down. It showed me: the trades 
 
 ## Demo
 
-[`?demo`](https://futuretracker.netlify.app/?demo), or **Try the demo** on the setup screen, loads about 120 made-up trades from May to October 2026 on MES, MNQ, MGC and a few XAUUSD. It ends a little down, with a real drawdown, an 8-trade losing streak and a couple of good weeks.
+[`?demo`](https://futuretracker.ethantam.dev/?demo), or **Try the demo** on the setup screen, loads about 120 made-up trades from May to October 2026 on MES, MNQ, MGC and a few XAUUSD. It ends a little down, with a real drawdown, an 8-trade losing streak and a couple of good weeks.
 
 - The data comes from a seeded generator in [`src/lib/demo.js`](src/lib/demo.js), so it is the same every time. Every trade goes through the form's own maths (`computeTrade`).
 - It lives in memory. Logging and editing work, but nothing is written to localStorage or a sheet, and a saved setup on the same device is left alone. **Exit demo** reloads without `?demo`.
@@ -173,7 +173,7 @@ Saved settings live in the browser for the site's domain. If the Netlify domain 
 
 ## Moving to futuretracker.ethantam.dev
 
-Not set up yet. The app needs no code changes for it: every path is absolute from the root, the manifest and service worker use `/`, and the Apps Script accepts calls from any origin. The steps:
+Done: the app runs at futuretracker.ethantam.dev. The steps are kept here for reference. The app needed no code changes for it: every path is absolute from the root, the manifest and service worker use `/`, and the Apps Script accepts calls from any origin. The steps:
 
 1. **Before switching**, on each device that uses "This device" storage: Trade Log → **Export CSV**. localStorage is tied to the web address, so those trades won't follow on their own. (Sheet users only need their Apps Script URL.)
 2. **Netlify:** Domain management → Add a domain → `futuretracker.ethantam.dev`.

@@ -5,7 +5,7 @@
 [build.environment]
   NODE_VERSION = "22"
 
-# Custom domain (planned): futuretracker.ethantam.dev. Once it is the primary
+# Custom domain: futuretracker.ethantam.dev. Once it is the primary
 # domain in Netlify, the .netlify.app address redirects to it automatically.
 # Steps are in the README under "Moving to futuretracker.ethantam.dev".
 
