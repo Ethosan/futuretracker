@@ -89,6 +89,12 @@ export function clearConfig() {
 export const getCopyTraders = () => kv.get(CT_KEY, []);
 export const setCopyTraders = list => kv.set(CT_KEY, list);
 
+/* Signing out of Google on a shared computer: remove this app's settings. */
+export function forgetDevice() {
+  kv.remove(CFG_KEY);
+  kv.remove(CT_KEY);
+}
+
 /* Trades for the account picked in the sidebar. Trades with no account count as Live. */
 export function activeTrades() {
   if (S.account === "all") return S.trades;

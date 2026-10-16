@@ -5,6 +5,7 @@ import { computeTrade, encodeNotesWithLegs } from "../lib/calc.js";
 import { normalizeTrade } from "../lib/rows.js";
 import { escapeHtml, localISODate, splitStrats } from "../lib/format.js";
 import { $, toast, setSyncStatus, busy, pressGroup, pressedValues } from "./dom.js";
+import { privateImages, uploadPrivate, showScreenshot, describeRef } from "./images.js";
 
 let onSaved = () => {};
 
@@ -239,8 +240,9 @@ function showImage(url) {
     img.alt = "Screenshot preview";
     wrap.prepend(img);
   }
-  img.src = url;
-  $("img-link-display").textContent = url;
+  img.hidden = false;
+  showScreenshot(img, url);
+  $("img-link-display").textContent = describeRef(url);
   $("img-preview-wrap").hidden = false;
 }
 
@@ -251,8 +253,25 @@ function imageMessage(text, cls) {
   label.className = "img-label " + cls;
 }
 
+/* Google mode: a private file in the user's Drive. */
+async function uploadToDrive(file) {
+  $("img-drop-label").hidden = true;
+  $("img-uploading").hidden = false;
+  $("img-preview-wrap").hidden = true;
+  try {
+    const ref = await uploadPrivate(file);
+    $("f-chart").value = ref;
+    $("img-uploading").hidden = true;
+    showImage(ref);
+  } catch (e) {
+    $("img-uploading").hidden = true;
+    imageMessage(e.name === "NeedsSignIn" ? "Sign in with Google again, then add the screenshot." : "Upload to Google Drive failed. Try again.", "err");
+  }
+}
+
 async function uploadImg(file) {
   if (!file) return;
+  if (privateImages()) { uploadToDrive(file); return; }
   if (!S.cfg.imgbbKey) {
     imageMessage("No imgbb API key. Add one in Settings, or paste an image URL below.", "warn");
     return;

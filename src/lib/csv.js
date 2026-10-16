@@ -2,9 +2,11 @@
    moving trades between this device, a Google Sheet, or a new web address. */
 import { COLS } from "../config.js";
 import { encodeNotesWithLegs } from "./calc.js";
+import { asPlainText, isFormulaLike } from "./rows.js";
 
+/* Formula-looking text gets an apostrophe so Excel or Sheets won't run it. */
 const cell = v => {
-  const s = String(v ?? "");
+  const s = asPlainText(String(v ?? ""));
   return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 };
 
@@ -42,5 +44,11 @@ export function csvToRows(text) {
   if (!head || !head.includes("id")) throw new Error("This CSV has no id column. Use a file exported from the journal.");
   return body
     .filter(r => r.some(v => v.trim() !== ""))
-    .map(r => Object.fromEntries(COLS.map(c => [c, head.includes(c) ? r[head.indexOf(c)] ?? "" : ""])));
+    .map(r => Object.fromEntries(COLS.map(c => [c, head.includes(c) ? unquote(r[head.indexOf(c)] ?? "") : ""])));
+}
+
+/* Undo the export's apostrophe. Anything else stays exactly as written; the
+   stores keep it as text (RAW writes, or the apostrophe for Apps Script). */
+function unquote(v) {
+  return v.startsWith("'") && isFormulaLike(v.slice(1)) ? v.slice(1) : v;
 }

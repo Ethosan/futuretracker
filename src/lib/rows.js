@@ -27,5 +27,12 @@ export function rowsToTrades(rows) {
     .map(row => normalizeTrade(Object.fromEntries(head.map((h, i) => [h, row[i] ?? ""]))));
 }
 
+/* Text that a spreadsheet would run as a formula (=, +, @, or - before
+   something that isn't a number), e.g. =IMPORTXML(...) sending data away.
+   A leading apostrophe makes Sheets and Excel keep it as plain text. */
+const FORMULA = /^[=+@\t\r]|^-(?![\d.]+$)/;
+export const isFormulaLike = v => typeof v === "string" && v !== "-" && FORMULA.test(v);
+export const asPlainText = v => (isFormulaLike(v) ? "'" + v : v);
+
 /* Keep only the sheet columns, in a fixed shape, for storing a row. */
 export const pickColumns = row => Object.fromEntries(COLS.map(c => [c, row[c] ?? ""]));

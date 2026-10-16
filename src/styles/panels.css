@@ -98,14 +98,33 @@
 .setup-actions .setup-error { margin: 0 }
 .setup-h2 { font-family: var(--display); font-size: 17px; font-weight: 600; margin: 40px 0 6px; padding-top: 24px; border-top: 1px solid var(--border); scroll-margin-top: 24px }
 
-/* Three ways in: demo, this device, Google Sheet */
+/* Main way in: Google. White button per Google's sign-in branding. */
+.google-start { margin-bottom: 4px }
+.btn-google {
+  display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 48px;
+  padding: 12px 20px; border-radius: var(--radius); background: #fff; color: #1f1f1f;
+  font-family: "Roboto", system-ui, sans-serif; font-size: 15px; font-weight: 500; border: 1px solid #747775;
+}
+.btn-google:hover { background: #f2f2f2 }
+.btn-google:disabled { opacity: 0.75; cursor: progress }
+.g-logo { flex-shrink: 0 }
+.google-note { font-size: var(--fs-xs); color: var(--muted); line-height: 1.7; margin-top: 10px }
+.or-line { display: flex; align-items: center; gap: 12px; margin: 22px 0 14px; font-size: var(--fs-xs); color: var(--muted); text-transform: uppercase; letter-spacing: var(--track) }
+.or-line::before, .or-line::after { content: ""; flex: 1; height: 1px; background: var(--border) }
+
+/* Apps Script steps fold away once Google sign-in exists. */
+.script-setup > summary { list-style: none; cursor: pointer }
+.script-setup > summary::-webkit-details-marker { display: none }
+.script-setup > summary .setup-h2::after { content: " +"; color: var(--muted) }
+.script-setup[open] > summary .setup-h2::after { content: " −" }
+
+/* Other ways in: demo, this device, Apps Script */
 .paths { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px }
 .path {
   display: flex; flex-direction: column; gap: 6px; text-align: left; text-decoration: none; color: var(--text);
   padding: 14px 16px; border: 1px solid var(--border2); border-radius: var(--radius); transition: border-color 0.15s, background 0.15s;
 }
 .path:hover { border-color: var(--muted) }
-.paths.four { grid-template-columns: repeat(2, minmax(0, 1fr)) }
 .path-demo { border-color: var(--accent); background: var(--accent-dim2) }
 .path-demo:hover { border-color: var(--accent); background: var(--accent-dim) }
 .path-title { font-size: var(--fs-sm); font-weight: 500 }
@@ -135,6 +154,6 @@
   .settings-row { flex-direction: column; align-items: stretch; gap: 8px }
   .settings-input { width: 100%; font-size: 16px }
   #setup-screen { padding: 24px 16px }
-  .paths, .paths.four { grid-template-columns: 1fr }
+  .paths { grid-template-columns: 1fr }
   .toast { left: 16px; right: 16px; bottom: 80px }
 }

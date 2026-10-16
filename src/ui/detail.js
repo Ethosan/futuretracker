@@ -3,6 +3,7 @@ import { S, findTrade, activeTrades } from "../state.js";
 import { durationMinutes, rMultiple } from "../lib/calc.js";
 import { escapeHtml, money, pnlClass, fmtTime, fmtMins, plural } from "../lib/format.js";
 import { $ } from "./dom.js";
+import { showScreenshot } from "./images.js";
 
 let onEdit = () => {};
 let lastFocus = null;
@@ -50,7 +51,7 @@ export function showTrade(id) {
     <span class="dim small">${escapeHtml(t.date)}${t.entryTime ? " · " + escapeHtml(fmtTime(t.entryTime, t.date, tz)) : ""}</span>`;
 
   let html = "";
-  if (t.chart) html += `<button type="button" class="shot-btn" data-full="${escapeHtml(t.chart)}" aria-label="View screenshot full size"><img class="review-screenshot" src="${escapeHtml(t.chart)}" alt="Trade screenshot" onerror="this.parentElement.hidden=true"></button>`;
+  if (t.chart) html += `<button type="button" class="shot-btn" data-full="${escapeHtml(t.chart)}" aria-label="View screenshot full size"><img class="review-screenshot" alt="Trade screenshot"></button>`;
 
   const sub = [
     "Net P&amp;L",
@@ -89,6 +90,8 @@ export function showTrade(id) {
 
   $("review-body").innerHTML = html;
   $("review-body").scrollTop = 0;
+  const shot = $("review-body").querySelector(".review-screenshot");
+  if (shot) showScreenshot(shot, t.chart, () => { shot.parentElement.hidden = true; });
   open();
 }
 
@@ -126,8 +129,8 @@ export function initDetail({ edit }) {
     const shot = e.target.closest("[data-full]");
     if (shot) {
       const img = document.createElement("img");
-      img.src = shot.dataset.full;
       img.alt = "Trade screenshot, full size";
+      showScreenshot(img, shot.dataset.full);
       $("fullscreen-img").replaceChildren(img);
       $("fullscreen-img").classList.add("open");
       return;

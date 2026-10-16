@@ -2,7 +2,7 @@
    Apps Script web apps don't send CORS headers, so every call is JSONP
    (a <script> tag with a callback). Writes go in the query string. */
 import { COLS } from "../config.js";
-import { rowsToTrades } from "./rows.js";
+import { rowsToTrades, asPlainText } from "./rows.js";
 
 let seq = 0;
 
@@ -40,10 +40,10 @@ export function createSheetClient(scriptUrl) {
       return rowsToTrades((await get()).values || []);
     },
     append(row) {
-      return post("append", COLS.map(c => row[c] ?? ""));
+      return post("append", COLS.map(c => asPlainText(row[c] ?? "")));
     },
     async update(row) {
-      const res = await post("update", COLS.map(c => row[c] ?? ""));
+      const res = await post("update", COLS.map(c => asPlainText(row[c] ?? "")));
       if (res && res.status === "not_found") throw new Error("Trade not found in the sheet");
       return res;
     },

@@ -35,6 +35,19 @@ I built it to find out why my account kept going down. It showed me: the trades 
 
 Device-only trades stay in that one browser on that one web address. Use **Export CSV** in the Trade Log to back them up. To move to a sheet: export, connect the sheet in **Settings**, then **Import CSV**. Import skips trades whose id is already there.
 
+## Security and privacy
+
+- **No server of ours.** Trades go straight from the browser to the user's own Google Drive, their own Apps Script, or their own browser storage.
+- **Sign in with Google** uses only the `drive.file` permission: the app can open files it made, nothing else in the Drive. The sheet and the screenshots folder are private to the user. The access token lives in the tab (sessionStorage) for about an hour. **Sign out** revokes it and removes the app's settings from the browser.
+- **Screenshots** in Google mode are private Drive files, fetched with the token and shown as `blob:` URLs. In the other modes imgbb is optional and its links are public; the app says so.
+- **Content Security Policy** in `netlify.toml`: scripts only from this site, Google sign-in and Apps Script; data only to Sheets, Drive, Google sign-in and imgbb. No inline scripts. Plus HSTS, `X-Frame-Options: DENY`, `nosniff`, and a pop-up-safe COOP for Google sign-in.
+- **Spreadsheet formulas:** Google mode writes cells as raw text, so nothing typed is ever run as a formula. Apps Script writes and CSV exports put an apostrophe in front of text that looks like a formula (`=`, `+`, `@`, `-` before non-numbers). CSV import takes it off again.
+- **Everything shown on screen is escaped**, including imported CSVs and sheet contents.
+- **Apps Script mode** is the weakest: the web app runs as "Anyone", so its URL works like a password, and JSONP sends rows in the URL. Prefer Sign in with Google.
+- **This device** mode is as private as the browser profile. Settings has **Delete trades on this device**.
+
+`tests/security.test.js` covers the formula guard and private screenshots; `tests/demo.test.js` checks demo mode makes no network calls and writes nothing.
+
 ## Sign in with Google (setup for whoever hosts the app)
 
 Users just press **Sign in with Google**. The app finds its "Trade Journal" sheet in their Drive, or makes one, and talks to it with the Sheets API from the browser. It asks only for `drive.file`, so it sees files it made and nothing else. The token stays in the tab for about an hour; after that a **Sign in** bar appears. Signing in on another device finds the same sheet.

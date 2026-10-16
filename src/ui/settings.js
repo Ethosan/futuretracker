@@ -1,7 +1,8 @@
 /* Setup screen (first run) and the Settings sheet. */
 import { TIMEZONES } from "../config.js";
-import { S, saveConfig, clearConfig, getCopyTraders, setCopyTraders, store, storageMode } from "../state.js";
+import { S, saveConfig, clearConfig, forgetDevice, getCopyTraders, setCopyTraders, store, storageMode } from "../state.js";
 import { findOrCreateSheet, sheetUrl } from "../lib/google.js";
+import { LOCAL_TRADES_KEY } from "../lib/stores.js";
 import { googleEnabled, preloadGoogle, getToken, tokenExpired, signOut } from "../google-auth.js";
 import { escapeHtml } from "../lib/format.js";
 import { $, toast, setSyncStatus, busy } from "./dom.js";
@@ -59,14 +60,17 @@ function startLocal() {
    getToken runs straight from the tap so the browser lets Google's popup open. */
 async function startGoogle() {
   $("err-google").hidden = true;
+  let found = false;
   try {
     await busy($("google-btn"), "Signing in", async () => {
       await getToken({ interactive: true });
-      const { spreadsheetId } = await findOrCreateSheet({ getToken, onExpired: tokenExpired });
+      const { spreadsheetId, created } = await findOrCreateSheet({ getToken, onExpired: tokenExpired });
       saveConfig({ mode: "google", spreadsheetId, imgbbKey: $("s-imgbb-key").value.trim() });
       await store().ensureHeaders();
+      found = !created;
     });
     onConnected();
+    toast(found ? "Welcome back. Your journal is loaded." : "Done. Your journal is a private sheet in your Google Drive.");
   } catch (e) {
     if (storageMode() === "google") clearConfig();
     $("err-google").hidden = false;
@@ -80,7 +84,7 @@ async function startGoogle() {
 const MODE_NOTE = {
   google: 'Trades go to the "Trade Journal" sheet in your Google Drive. The journal can only see files it made.',
   demo: "This is the demo. Nothing here is saved, and it never connects to a Google Sheet.",
-  local: "Trades are saved in this browser only. Back them up with Export CSV in the Trade Log. To move to a Google Sheet, paste its Apps Script URL below, then import the CSV.",
+  local: "Trades are saved in this browser only, so anyone who uses this browser can see them. Back them up with Export CSV in the Trade Log. To move to a Google Sheet, paste its Apps Script URL below, then import the CSV.",
   sheet: "",
 };
 
@@ -114,6 +118,10 @@ export function openSettings() {
   $("set-open-sheet-wrap").hidden = mode !== "google";
   if (mode === "google") $("set-open-sheet").href = sheetUrl(S.cfg.spreadsheetId);
   $("set-danger").hidden = mode === "demo";
+  $("set-imgbb-section").hidden = mode === "google";
+  $("wipe-row").hidden = mode !== "local";
+  $("reset-lbl").textContent = mode === "google" ? "Sign out" : "Reset connection";
+  $("reset-btn").textContent = mode === "google" ? "Sign out" : "Reset";
   $("set-sheet-sub").textContent = mode === "local" ? "Optional. Switches to a sheet." : "Your web app endpoint";
   $("reset-sub").textContent = {
     local: "Clears the settings on this device. Trades saved on this device are kept.",
@@ -178,13 +186,14 @@ export function initSettings({ connected, reconnect }) {
   $("local-btn").addEventListener("click", startLocal);
   $("google-btn").addEventListener("click", startGoogle);
   if (googleEnabled()) {
-    $("google-btn").hidden = false;
-    document.querySelector(".paths").classList.add("four");
+    $("google-start").hidden = false;
     $("script-path").querySelector(".path-title").textContent = "Use your own Apps Script";
     $("script-path").querySelector(".path-desc").textContent = "The older way. You set up the sheet and script yourself. About five minutes.";
     $("sheet-setup").textContent = "Use your own Apps Script";
+    $("script-details").open = false;
     preloadGoogle()?.catch(() => {});
   }
+  $("script-path").addEventListener("click", () => { $("script-details").open = true; });
   $("copy-script-btn").addEventListener("click", async () => {
     try { await navigator.clipboard.writeText($("script-block").textContent.trim()); } catch { /* clipboard blocked */ }
     $("copy-script-btn").textContent = "copied!";
@@ -206,11 +215,23 @@ export function initSettings({ connected, reconnect }) {
     renderCopyTraderTags();
   });
   $("reset-btn").addEventListener("click", () => {
-    if (confirm("This clears the stored connection from this device. Your trades in Google Sheets are safe. Continue?")) {
-      if (storageMode() === "google") signOut();
+    const google = storageMode() === "google";
+    const msg = google
+      ? "Sign out of Google on this device? Your journal stays in your Google Drive."
+      : "This clears the stored connection from this device. Your trades in Google Sheets are safe. Continue?";
+    if (!confirm(msg)) return;
+    if (google) {
+      signOut();
+      forgetDevice(); // leave nothing behind on a shared computer
+    } else {
       clearConfig();
-      location.reload();
     }
+    location.replace(location.pathname);
+  });
+  $("wipe-btn").addEventListener("click", () => {
+    if (!confirm("Delete every trade saved in this browser? This can't be undone.")) return;
+    localStorage.removeItem(LOCAL_TRADES_KEY);
+    location.reload();
   });
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeSettings(); });
 }
