@@ -1,17 +1,40 @@
 # Trade Journal
 
-A personal futures trading journal for **MES, MNQ, MGC and XAUUSD**. Every trade is saved to **your own Google Sheet** through a small Apps Script, so you keep the data and nothing runs on someone else's server.
+A personal futures trading journal for **MES, MNQ, MGC and XAUUSD**. Trades are saved to **your own Google Sheet** through a small Apps Script, or just to the browser you're using. Either way you keep the data and nothing runs on someone else's server.
+
+I built it to find out why my account kept going down. It showed me: the trades where I broke a rule lost more than the clean ones made.
+
+**Live:** [futuretracker.netlify.app](https://futuretracker.netlify.app). Add [`?demo`](https://futuretracker.netlify.app/?demo) to try it with sample data.
 
 - **Log trades** with scale-in / scale-out legs. Average entry, points and dollars risked, planned R:R, gross and net P&L, and the **R multiple** are worked out as you type.
 - **Tag everything:** strategies (multi-select), copy trader, session, market condition, confidence, emotion, mistakes, a screenshot (drag, drop or paste; uploaded to imgbb) and written review notes.
 - **Trade log** grouped by day, with today's tally, filters and **CSV export**.
-- **Stats:** win rate, expectancy, profit factor, payoff ratio, average and total R, streaks, max drawdown, and win-rate breakdowns by copy trader, instrument, strategy, session, weekday, direction, confidence and hold time.
+- **Stats:** win rate, expectancy, profit factor, payoff ratio, average and total R, streaks, max drawdown, and win-rate breakdowns by copy trader, instrument, strategy, session, weekday, direction, confidence and hold time. **What mistakes cost:** each mistake's total P&L, and trades with a mistake against trades without one.
 - **Charts:** equity curve, strategy, session, weekday, long vs short, instruments, copy traders, mistakes.
 - **Review:** weekly or monthly report cards.
 - **Heatmap:** a year of daily P&L. Tap a day to see its trades.
 - **Live / Prop** account filter across every view. Installable and usable on a phone.
+- **CSV export and import** in sheet column order, legs included, for backups and moving between storage options.
 
-## Setup (once per device)
+## Demo
+
+[`?demo`](https://futuretracker.netlify.app/?demo), or **Try the demo** on the setup screen, loads about 120 made-up trades from May to October 2026 on MES, MNQ, MGC and a few XAUUSD. It ends a little down, with a real drawdown, an 8-trade losing streak and a couple of good weeks.
+
+- The data comes from a seeded generator in [`src/lib/demo.js`](src/lib/demo.js), so it is the same every time. Every trade goes through the form's own maths (`computeTrade`).
+- It lives in memory. Logging and editing work, but nothing is written to localStorage or a sheet, and a saved setup on the same device is left alone. **Exit demo** reloads without `?demo`.
+- `tests/demo.test.js` checks the data against every stats function and that demo mode never calls the Sheets client.
+
+## Where trades are kept
+
+| Option | How | Good for |
+|---|---|---|
+| Google Sheet | Your own Apps Script web app (below) | Every device, data in a sheet you can open |
+| This device | Browser localStorage, no account | Trying it properly, or one phone only |
+| Demo | Memory, gone on reload | Looking around |
+
+Device-only trades stay in that one browser on that one web address. Use **Export CSV** in the Trade Log to back them up. To move to a sheet: export, connect the sheet in **Settings**, then **Import CSV**. Import skips trades whose id is already there.
+
+## Google Sheet setup (once per device)
 
 1. Create a Google Sheet ([sheets.new](https://sheets.new)).
 2. **Extensions → Apps Script**, replace the code with [`apps-script/Code.gs`](apps-script/Code.gs), save.
@@ -39,7 +62,11 @@ src/
   lib/                  pure logic, unit tested
     calc.js             trade maths, R multiple, legs encoding
     stats.js            summaries, breakdowns, periods, heatmap data
-    sheets.js           JSONP client for the Apps Script and row parsing
+    sheets.js           JSONP client for the Apps Script
+    stores.js           device (localStorage) and in-memory stores, same shape as the sheet client
+    rows.js             stored row to trade object
+    csv.js              CSV export and import
+    demo.js             seeded sample journal for demo mode
     format.js           money, dates, durations, escaping
   ui/
     form.js             Log Trade form
@@ -84,3 +111,14 @@ npm test
 3. Every push to `main` deploys.
 
 Saved settings live in the browser for the site's domain. If the Netlify domain changes, paste the Apps Script URL in once more. Your trades are in the sheet either way.
+
+## Moving to futuretracker.ethantam.dev
+
+Not set up yet. The app needs no code changes for it: every path is absolute from the root, the manifest and service worker use `/`, and the Apps Script accepts calls from any origin. The steps:
+
+1. **Before switching**, on each device that uses "This device" storage: Trade Log → **Export CSV**. localStorage is tied to the web address, so those trades won't follow on their own. (Sheet users only need their Apps Script URL.)
+2. **Netlify:** Domain management → Add a domain → `futuretracker.ethantam.dev`.
+3. **Cloudflare DNS** for ethantam.dev: add `CNAME futuretracker → futuretracker.netlify.app`, **DNS only** (grey cloud), so Netlify can issue the certificate.
+4. In Netlify, wait for HTTPS, then make it the primary domain. Netlify then redirects `futuretracker.netlify.app` to it, `?demo` included.
+5. Open the new address on each device: paste the Apps Script URL again, or pick "Use it on this device" and **Import CSV**.
+6. Update the links on ethantam.dev (the Trade Journal card and `journal` in the terminal in `main.js`) to `https://futuretracker.ethantam.dev/?demo`, and the Live link at the top of this README.

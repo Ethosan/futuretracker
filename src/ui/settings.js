@@ -1,6 +1,6 @@
 /* Setup screen (first run) and the Settings sheet. */
 import { TIMEZONES } from "../config.js";
-import { S, saveConfig, clearConfig, getCopyTraders, setCopyTraders, sheet } from "../state.js";
+import { S, saveConfig, clearConfig, getCopyTraders, setCopyTraders, store, storageMode } from "../state.js";
 import { escapeHtml } from "../lib/format.js";
 import { $, toast, setSyncStatus, busy } from "./dom.js";
 import { renderCopyTraderTags } from "./form.js";
@@ -29,9 +29,9 @@ async function finishSetup() {
     return;
   }
   const prev = S.cfg;
-  saveConfig({ ...(prev || {}), scriptUrl, imgbbKey });
+  saveConfig({ ...sheetConfig(prev), scriptUrl, imgbbKey });
   try {
-    await busy($("setup-btn"), "Connecting", () => sheet().ensureHeaders());
+    await busy($("setup-btn"), "Connecting", () => store().ensureHeaders());
     onConnected();
   } catch {
     if (prev) saveConfig(prev); else clearConfig();
@@ -40,7 +40,26 @@ async function finishSetup() {
   }
 }
 
+/* A config for sheet mode: whatever was set before, minus the device-only flag. */
+function sheetConfig(cfg) {
+  const rest = { ...(cfg || {}) };
+  delete rest.mode;
+  return rest;
+}
+
+/* No sheet: trades stay in this browser. */
+function startLocal() {
+  saveConfig({ mode: "local", imgbbKey: $("s-imgbb-key").value.trim() });
+  onConnected();
+}
+
 /* --------------------------------------------------------------- settings */
+const MODE_NOTE = {
+  demo: "This is the demo. Nothing here is saved, and it never connects to a Google Sheet.",
+  local: "Trades are saved in this browser only. Back them up with Export CSV in the Trade Log. To move to a Google Sheet, paste its Apps Script URL below, then import the CSV.",
+  sheet: "",
+};
+
 function renderCopyTraderList() {
   const cts = getCopyTraders();
   $("ct-list").innerHTML = cts.length
@@ -64,6 +83,15 @@ function addCopyTrader() {
 export function openSettings() {
   lastFocus = document.activeElement;
   $("set-timezone").innerHTML = TIMEZONES.map(([label, val]) => `<option value="${val}"${(S.cfg.timezone || "") === val ? " selected" : ""}>${label}</option>`).join("");
+  const mode = storageMode();
+  $("set-mode-note").textContent = MODE_NOTE[mode];
+  $("set-mode-note").hidden = !MODE_NOTE[mode];
+  $("set-sheet-row").hidden = mode === "demo";
+  $("set-danger").hidden = mode === "demo";
+  $("set-sheet-sub").textContent = mode === "local" ? "Optional. Switches to a sheet." : "Your web app endpoint";
+  $("reset-sub").textContent = mode === "local"
+    ? "Clears the settings on this device. Trades saved on this device are kept."
+    : "Clears the settings on this device. Your trades in Google Sheets are safe.";
   $("set-script-url").value = S.cfg.scriptUrl || "";
   $("set-imgbb-key").value = S.cfg.imgbbKey || "";
   renderCopyTraderList();
@@ -81,19 +109,35 @@ export function closeSettings() {
 }
 
 function saveSettings({ onReconnect }) {
+  const mode = storageMode();
+  const prefs = { imgbbKey: $("set-imgbb-key").value.trim(), timezone: $("set-timezone").value };
   const scriptUrl = $("set-script-url").value.trim();
-  if (!validUrl(scriptUrl)) { toast("That doesn't look like an Apps Script web app URL.", true); return; }
-  const reconnect = scriptUrl !== S.cfg.scriptUrl;
-  saveConfig({ ...S.cfg, scriptUrl, imgbbKey: $("set-imgbb-key").value.trim(), timezone: $("set-timezone").value });
-  $("logo-sub").textContent = "Personal · " + tzLabel(S.cfg.timezone);
+  let reconnect = false;
+
+  if (mode === "demo" || (mode === "local" && !scriptUrl)) {
+    saveConfig({ ...S.cfg, ...prefs });
+  } else {
+    if (!validUrl(scriptUrl)) { toast("That doesn't look like an Apps Script web app URL.", true); return; }
+    if (mode === "local" && !confirm("Switch to this Google Sheet? Trades on this device stay here. Export a CSV first if you want to import them into the sheet.")) return;
+    reconnect = scriptUrl !== S.cfg.scriptUrl || mode === "local";
+    saveConfig({ ...sheetConfig(S.cfg), ...prefs, scriptUrl });
+  }
+
+  $("logo-sub").textContent = logoSub();
   closeSettings();
   toast("Settings saved.");
   if (reconnect) {
     setSyncStatus("loading", "Reconnecting...");
-    sheet().ensureHeaders().then(onReconnect).catch(() => setSyncStatus("err", "Connection failed"));
+    store().ensureHeaders().then(onReconnect).catch(() => setSyncStatus("err", "Connection failed"));
   } else {
     onReconnect(false);
   }
+}
+
+/* Small line under the logo: where trades live and the display timezone. */
+export function logoSub() {
+  const where = { demo: "Demo", local: "This device", sheet: "Google Sheet" }[storageMode()] || "Personal";
+  return where + " · " + tzLabel(S.cfg?.timezone);
 }
 
 export function initSettings({ connected, reconnect }) {
@@ -104,6 +148,7 @@ export function initSettings({ connected, reconnect }) {
   $("s-script-url").addEventListener("input", checkSteps);
   $("s-imgbb-key").addEventListener("input", checkSteps);
   $("setup-form").addEventListener("submit", e => { e.preventDefault(); finishSetup(); });
+  $("local-btn").addEventListener("click", startLocal);
   $("copy-script-btn").addEventListener("click", async () => {
     try { await navigator.clipboard.writeText($("script-block").textContent.trim()); } catch { /* clipboard blocked */ }
     $("copy-script-btn").textContent = "copied!";

@@ -1,7 +1,7 @@
 {
   "name": "Trade Journal",
   "short_name": "Journal",
-  "description": "Personal futures trading journal that syncs to your own Google Sheet.",
+  "description": "Personal futures trading journal. Saves to your own Google Sheet or this device.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

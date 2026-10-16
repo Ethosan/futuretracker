@@ -26,8 +26,16 @@ export function renderHeatmap() {
   $("heatmap-empty").textContent = trades.length ? `No trades in ${year}.` : "Log some trades to see the heatmap.";
   if (!has) { $("heatmap-grid").innerHTML = ""; $("heatmap-monthly-summary").innerHTML = ""; return; }
 
+  /* Skip months before the journal's first trade and after this month: they can only be empty. */
+  const first = trades.reduce((a, t) => (t.date && (!a || t.date < a) ? t.date : a), "");
+  const now = new Date();
+  const from = first.startsWith(String(year)) ? +first.slice(5, 7) - 1 : 0;
+  const to = year === now.getFullYear() ? now.getMonth() : 11;
+  const shown = (_, mi) => mi >= from && mi <= to;
+
   const maxAbs = Math.max(...Object.values(days).map(d => Math.abs(d.pnl)), 1);
   $("heatmap-grid").innerHTML = MONTHS.map((mon, mi) => {
+    if (!shown(mon, mi)) return "";
     const lead = (new Date(year, mi, 1).getDay() + 6) % 7;
     const count = new Date(year, mi + 1, 0).getDate();
     let cells = DOW.map(d => `<span class="hm-dow" aria-hidden="true">${d}</span>`).join("");
@@ -44,6 +52,7 @@ export function renderHeatmap() {
 
   let yearPnl = 0, yearTrades = 0, yearWins = 0;
   const rows = MONTHS.map((mon, mi) => {
+    if (!shown(mon, mi)) return "";
     const prefix = `${year}-${pad(mi + 1)}`;
     const mt = trades.filter(t => t.date && t.date.startsWith(prefix));
     if (!mt.length) return `<tr><td>${mon}</td><td colspan="5" class="dim center">—</td></tr>`;

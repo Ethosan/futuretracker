@@ -113,6 +113,23 @@ export function mistakeCounts(trades) {
   return out;
 }
 
+/* What each mistake cost: { mistake: { n, pnl } }, plus trades with and without one. */
+export function mistakeCosts(trades) {
+  const by = {};
+  const clean = { n: 0, pnl: 0 }, slipped = { n: 0, pnl: 0 };
+  for (const t of trades) {
+    const tagged = t.mistake && t.mistake !== "None";
+    const g = tagged ? slipped : clean;
+    g.n++;
+    g.pnl += t.netPnl;
+    if (!tagged) continue;
+    const m = by[t.mistake] || (by[t.mistake] = { n: 0, pnl: 0 });
+    m.n++;
+    m.pnl += t.netPnl;
+  }
+  return { by, clean, slipped };
+}
+
 /* Cumulative net P&L in trade order, for the equity curve. */
 export function equityCurve(trades) {
   let cum = 0;

@@ -72,9 +72,14 @@ export function renderStats() {
   $("weekday-breakdown").innerHTML = rows(St.byWeekday(t), { order: St.WEEKDAYS }) || empty("No data.");
   $("dir-breakdown").innerHTML = rows(St.byDirection(t), { order: ["Long", "Short"] }) || empty("No data.");
 
-  const mistakes = St.mistakeCounts(t);
-  $("mistake-breakdown").innerHTML = Object.keys(mistakes).sort((a, b) => mistakes[b] - mistakes[a])
-    .map(m => `<div class="mistake-row"><span>${escapeHtml(m)}</span><span class="mistake-count">${mistakes[m]}×</span></div>`).join("") || empty("No mistakes logged yet.");
+  /* Sorted by what each mistake cost, not how often it happened. */
+  const { by, clean, slipped } = St.mistakeCosts(t);
+  const mistakeRows = Object.keys(by).sort((a, b) => by[a].pnl - by[b].pnl)
+    .map(m => `<div class="mistake-row"><span>${escapeHtml(m)}</span><span class="mistake-cost"><span class="dim">${by[m].n}×</span> <span class="num strong ${pnlClass(by[m].pnl)}">${money(by[m].pnl)}</span></span></div>`).join("");
+  $("mistake-breakdown").innerHTML = mistakeRows
+    ? `<p class="mistake-sum">With a mistake: <span class="num strong ${pnlClass(slipped.pnl)}">${money(slipped.pnl)}</span> over ${plural(slipped.n, "trade")}.<br>
+        Without: <span class="num strong ${pnlClass(clean.pnl)}">${money(clean.pnl)}</span> over ${plural(clean.n, "trade")}.</p>` + mistakeRows
+    : empty("No mistakes logged yet.");
 
   $("conf-breakdown").innerHTML = [1, 2, 3, 4, 5].map(c => {
     const sub = t.filter(x => x.conf === c);

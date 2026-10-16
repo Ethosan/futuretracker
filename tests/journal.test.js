@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { computeTrade, weightedAvg, durationMinutes, encodeNotesWithLegs, decodeNotesWithLegs, rMultiple } from "../src/lib/calc.js";
 import { summary, byStrategy, byWeekday, weekStart, groupByPeriod, dailyTotals, equityCurve } from "../src/lib/stats.js";
-import { rowsToTrades } from "../src/lib/sheets.js";
+import { rowsToTrades } from "../src/lib/rows.js";
 import { money, localISODate, fmtMins } from "../src/lib/format.js";
 import { COLS } from "../src/config.js";
 
@@ -141,6 +141,7 @@ describe("format", () => {
   it("money, minutes, local date", () => {
     expect(money(12.5)).toBe("+$12.50");
     expect(money(-3)).toBe("-$3.00");
+    expect(money(-1737.114)).toBe("-$1,737.11");
     expect(fmtMins(95)).toBe("1h 35m");
     expect(fmtMins(120)).toBe("2h");
     expect(durationMinutes("23:50", "00:10")).toBe(20);

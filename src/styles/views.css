@@ -41,16 +41,17 @@
 .breakdown-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 14px; margin-top: 14px }
 .strat-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); min-width: 0; font-size: var(--fs-xs) }
 .strat-row:last-child { border-bottom: none }
-.strat-name { flex: 1; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 80px; max-width: 170px }
-.bar-wrap { flex: 2; background: var(--surface2); border-radius: 2px; height: 4px; overflow: hidden; min-width: 40px }
+.strat-name { flex: 1.2 1 0; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0 }
+.bar-wrap { flex: 1 1 0; background: var(--surface2); border-radius: 2px; height: 4px; overflow: hidden; min-width: 40px }
 .bar-fill { height: 4px; border-radius: 2px; transition: width 0.4s ease; background: var(--accent) }
 .bar-fill.neg { background: var(--red) }
 .col-wr { width: 42px; text-align: right }
-.col-n { width: 70px; text-align: right }
-.col-pnl { min-width: 76px; text-align: right }
+.col-n { width: 76px; text-align: right; white-space: nowrap }
+.col-pnl { min-width: 84px; text-align: right; white-space: nowrap }
 .mistake-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: var(--fs-xs) }
 .mistake-row:last-child { border-bottom: none }
-.mistake-count { font-weight: 500; color: var(--red); font-size: var(--fs-sm) }
+.mistake-cost { white-space: nowrap; font-size: var(--fs-sm) }
+.mistake-sum { font-size: var(--fs-xs); color: var(--muted); line-height: 1.8; padding-bottom: 10px; border-bottom: 1px solid var(--border) }
 .mini-grid { display: grid; gap: 10px }
 .mini-grid.three { grid-template-columns: repeat(3, 1fr) }
 .mini-grid.five, #conf-breakdown { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)) }
@@ -118,4 +119,5 @@ button.hm-cell:hover, button.hm-cell:focus-visible { outline: 2px solid var(--te
   .period-card .mini-grid { grid-template-columns: repeat(3, 1fr) }
   .two-col { grid-template-columns: 1fr }
   .strat-row .col-n { display: none }
+  .strat-name { flex: 2 1 0 }
 }

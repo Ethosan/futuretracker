@@ -1,4 +1,4 @@
-/* Offline shell for Trade Journal. Trades always come live from Google Sheets;
+/* Offline shell for Trade Journal. Trades come live from Google Sheets (or localStorage);
    only the app itself (HTML, fingerprinted assets, icons, fonts) is cached. */
 const CACHE = "tj-v1";
 const SHELL = ["/", "/manifest.webmanifest", "/icon.svg", "/icon-192.png"];

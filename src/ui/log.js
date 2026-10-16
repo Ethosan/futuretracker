@@ -1,11 +1,14 @@
 /* Trade Log view: today bar, filters, grouped table and CSV export. */
-import { COLS, INSTRUMENTS } from "../config.js";
-import { S, activeTrades } from "../state.js";
+import { INSTRUMENTS } from "../config.js";
+import { S, activeTrades, store } from "../state.js";
 import { rMultiple } from "../lib/calc.js";
 import { escapeHtml, money, pnlClass, localISODate, fmtTime, splitStrats, plural } from "../lib/format.js";
-import { $ } from "./dom.js";
+import { tradesToCsv, csvToRows } from "../lib/csv.js";
+import { normalizeTrade } from "../lib/rows.js";
+import { $, toast, busy } from "./dom.js";
 
 let onOpen = () => {};
+let onImported = () => {};
 
 const outcomeClass = o => (o === "W" ? "out-w" : o === "L" ? "out-l" : "out-be");
 const dash = '<span class="dim">—</span>';
@@ -97,14 +100,10 @@ export function renderLog() {
   $("log-body").innerHTML = html;
 }
 
-/* CSV of every trade in the current account view, in sheet column order. */
+/* CSV of every trade in the current account view, in sheet column order.
+   Multi-leg trades keep their legs, so the file can be imported again. */
 function exportCsv() {
-  const cell = v => {
-    const s = String(v ?? "");
-    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-  };
-  const lines = [COLS.join(","), ...activeTrades().map(t => COLS.map(c => cell(t[c])).join(","))];
-  const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+  const blob = new Blob([tradesToCsv(activeTrades())], { type: "text/csv" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `trades-${S.account.toLowerCase()}-${localISODate()}.csv`;
@@ -112,13 +111,45 @@ function exportCsv() {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-export function initLog({ open, refresh }) {
+/* Add trades from an exported CSV. Trades already in the journal (same id) are skipped. */
+async function importCsv(file) {
+  if (!file) return;
+  let rows;
+  try {
+    rows = csvToRows(await file.text());
+  } catch (e) {
+    toast(e.message || "Couldn't read that file.", true);
+    return;
+  }
+  const have = new Set(S.trades.map(t => t.id));
+  const fresh = rows.filter(r => r.id && !have.has(String(r.id)));
+  if (!fresh.length) { toast("Nothing new to import."); return; }
+  let done = 0;
+  try {
+    await busy($("import-btn"), "Importing", async () => {
+      for (const row of fresh) {
+        await store().append(row);
+        S.trades.push(normalizeTrade(row));
+        done++;
+      }
+    });
+    toast(`Imported ${plural(done, "trade")}.`);
+  } catch {
+    toast(`Imported ${done} of ${fresh.length}. The rest failed, try again.`, true);
+  }
+  onImported();
+}
+
+export function initLog({ open, refresh, imported }) {
   onOpen = open;
+  onImported = imported;
   const inst = $("filter-instrument");
   for (const i of INSTRUMENTS) inst.add(new Option(i, i));
   for (const id of ["filter-text", "filter-outcome", "filter-strat", "filter-instrument"]) $(id).addEventListener("input", renderLog);
   $("refresh-btn").addEventListener("click", refresh);
   $("export-btn").addEventListener("click", exportCsv);
+  $("import-btn").addEventListener("click", () => $("import-file").click());
+  $("import-file").addEventListener("change", e => { importCsv(e.target.files[0]); e.target.value = ""; });
   const body = $("log-body");
   body.addEventListener("click", e => {
     const row = e.target.closest(".trade-row");

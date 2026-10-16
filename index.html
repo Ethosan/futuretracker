@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Trade Journal</title>
-<meta name="description" content="A personal futures trading journal for MES, MNQ, MGC and XAUUSD that syncs to your own Google Sheet.">
+<meta name="description" content="A personal futures trading journal for MES, MNQ, MGC and XAUUSD. Saves to your own Google Sheet or this device. Try the demo.">
 <meta name="theme-color" content="#141414">
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -20,8 +20,26 @@
 <div id="setup-screen" hidden>
   <form class="setup-box" id="setup-form" novalidate>
     <div class="setup-logo">Trade Journal</div>
-    <h1 class="setup-title">Setup guide</h1>
-    <p class="setup-sub">A personal futures trading journal for MES, MNQ, MGC and XAUUSD. Tracks Live and Prop accounts separately and syncs to your own Google Sheet. Do this once per device.</p>
+    <h1 class="setup-title">Get started</h1>
+    <p class="setup-sub">A futures trading journal for MES, MNQ, MGC and XAUUSD. Log each trade with what you felt and what you did wrong, then see where the money goes. Live and Prop accounts are tracked separately.</p>
+
+    <div class="paths">
+      <a class="path path-demo" href="?demo">
+        <span class="path-title">Try the demo</span>
+        <span class="path-desc">About 120 sample trades over five months. Nothing is saved.</span>
+      </a>
+      <button type="button" class="path" id="local-btn">
+        <span class="path-title">Use it on this device</span>
+        <span class="path-desc">No account. Trades stay in this browser. Export a CSV to back up.</span>
+      </button>
+      <a class="path" href="#sheet-setup">
+        <span class="path-title">Connect a Google Sheet</span>
+        <span class="path-desc">Trades go to your own sheet and follow you to any device. About five minutes.</span>
+      </a>
+    </div>
+
+    <h2 class="setup-h2" id="sheet-setup">Connect a Google Sheet</h2>
+    <p class="setup-sub">Do this once per device. The journal only talks to your sheet, through a small script you own.</p>
 
     <div class="step">
       <div class="step-num done" aria-hidden="true">1</div>
@@ -114,14 +132,20 @@
   </nav>
 
   <main class="main" id="main">
-    <!-- Mobile only: account switcher and settings (the sidebar becomes a tab bar) -->
-    <div class="mobile-bar">
-      <div class="acct-switcher" role="group" aria-label="Account">
-        <button type="button" class="acct-btn" data-account="all" aria-pressed="true">All</button>
-        <button type="button" class="acct-btn" data-account="Live" aria-pressed="false">Live</button>
-        <button type="button" class="acct-btn" data-account="Prop" aria-pressed="false">Prop</button>
+    <div class="top-stack">
+      <div class="demo-banner" id="demo-banner" role="status" hidden>
+        <p><b>Demo data.</b> <span class="demo-long">Made-up trades. You can log and edit, but changes only last until you close this tab.</span><span class="demo-short">Edits stay in this tab.</span></p>
+        <button type="button" class="btn-small" id="exit-demo">Exit demo</button>
       </div>
-      <button type="button" class="icon-btn" data-open-settings aria-label="Settings">⚙</button>
+      <!-- Mobile only: account switcher and settings (the sidebar becomes a tab bar) -->
+      <div class="mobile-bar">
+        <div class="acct-switcher" role="group" aria-label="Account">
+          <button type="button" class="acct-btn" data-account="all" aria-pressed="true">All</button>
+          <button type="button" class="acct-btn" data-account="Live" aria-pressed="false">Live</button>
+          <button type="button" class="acct-btn" data-account="Prop" aria-pressed="false">Prop</button>
+        </div>
+        <button type="button" class="icon-btn" data-open-settings aria-label="Settings">⚙</button>
+      </div>
     </div>
 
     <!-- LOG TRADE -->
@@ -287,6 +311,8 @@
         <select id="filter-instrument" aria-label="Instrument"><option value="">All instruments</option></select>
         <button type="button" class="btn btn-ghost nowrap" id="refresh-btn">↻ Refresh</button>
         <button type="button" class="btn btn-ghost nowrap" id="export-btn">Export CSV</button>
+        <button type="button" class="btn btn-ghost nowrap" id="import-btn">Import CSV</button>
+        <input type="file" id="import-file" accept=".csv,text/csv" hidden>
       </div>
       <div class="table-scroll">
         <table class="log-table">
@@ -298,7 +324,7 @@
         </table>
       </div>
       <p id="log-empty" class="empty-state" hidden>No trades yet.</p>
-      <p id="log-loading" class="empty-state">Loading from Google Sheets<span class="spinner light" aria-hidden="true"></span></p>
+      <p id="log-loading" class="empty-state">Loading trades<span class="spinner light" aria-hidden="true"></span></p>
     </section>
 
     <!-- STATS -->
@@ -342,7 +368,7 @@
           <div><h2 class="section-label">Win rate by session</h2><div class="form-card" id="session-breakdown"></div></div>
           <div><h2 class="section-label">Win rate by weekday</h2><div class="form-card" id="weekday-breakdown"></div></div>
           <div><h2 class="section-label">Long vs short</h2><div class="form-card" id="dir-breakdown"></div></div>
-          <div><h2 class="section-label">Most common mistakes</h2><div class="form-card" id="mistake-breakdown"></div></div>
+          <div><h2 class="section-label">What mistakes cost</h2><div class="form-card" id="mistake-breakdown"></div></div>
           <div><h2 class="section-label">Win rate by confidence</h2><div class="form-card mini-grid five" id="conf-breakdown"></div></div>
         </div>
 
@@ -456,9 +482,10 @@
       </div>
 
       <section class="settings-section">
-        <h3 class="settings-section-lbl">Google Sheets connection</h3>
-        <div class="settings-row">
-          <div><label class="settings-row-lbl" for="set-script-url">Apps Script URL</label><div class="settings-row-sub">Your web app endpoint</div></div>
+        <h3 class="settings-section-lbl">Where trades are kept</h3>
+        <p class="hint" id="set-mode-note"></p>
+        <div class="settings-row" id="set-sheet-row">
+          <div><label class="settings-row-lbl" for="set-script-url">Apps Script URL</label><div class="settings-row-sub" id="set-sheet-sub">Your web app endpoint</div></div>
           <input class="settings-input" id="set-script-url" type="url" placeholder="https://script.google.com/..." autocomplete="off">
         </div>
       </section>
@@ -489,10 +516,10 @@
         </div>
       </section>
 
-      <section class="settings-section last">
+      <section class="settings-section last" id="set-danger">
         <h3 class="settings-section-lbl">Danger zone</h3>
         <div class="settings-row">
-          <div><div class="settings-row-lbl">Reset connection</div><div class="settings-row-sub">Clears the settings on this device. Your trades in Google Sheets are safe.</div></div>
+          <div><div class="settings-row-lbl">Reset connection</div><div class="settings-row-sub" id="reset-sub">Clears the settings on this device. Your trades in Google Sheets are safe.</div></div>
           <button type="button" class="settings-danger" id="reset-btn">Reset</button>
         </div>
       </section>

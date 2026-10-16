@@ -6,6 +6,7 @@ import {
 import { SESSIONS } from "../config.js";
 import { activeTrades } from "../state.js";
 import * as St from "../lib/stats.js";
+import { money } from "../lib/format.js";
 import { $ } from "./dom.js";
 
 Chart.register(LineController, BarController, DoughnutController, LineElement, BarElement, ArcElement, PointElement,
@@ -26,6 +27,15 @@ const tip = { backgroundColor: "#1c1c1c", borderColor: "#404040", borderWidth: 1
 const base = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: tip } };
 const pctAxis = { min: 0, max: 100, ticks: { callback: v => v + "%" }, grid: { color: C.grid } };
 const sign = (vals, a, b) => vals.map(v => (v >= 0 ? a : b));
+/* Category axes show every label; long lists go horizontal instead of rotating. */
+const cats = { grid: { display: false }, ticks: { autoSkip: false } };
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const shortDate = d => (d ? +d.slice(8, 10) + " " + MONTHS[+d.slice(5, 7) - 1] : "");
+
+/* Horizontal bar charts get a height that fits their rows. */
+function fitRows(canvasId, n) {
+  $(canvasId).parentElement.style.height = Math.max(160, n * 30 + 36) + "px";
+}
 
 function draw(key, canvasId, config) {
   charts[key]?.destroy();
@@ -37,13 +47,15 @@ function winRates(map, keys) {
   return keys.map(k => { const g = map[k]; const d = g.w + g.l; return d ? Math.round(g.w / d * 100) : 0; });
 }
 
-function wrBar(key, canvasId, map, keys) {
+function wrBar(key, canvasId, map, keys, { horizontal = false } = {}) {
   const vals = winRates(map, keys);
+  const v = horizontal ? "x" : "y";
+  if (horizontal) fitRows(canvasId, keys.length);
   draw(key, canvasId, {
     type: "bar",
     data: { labels: keys, datasets: [{ data: vals, backgroundColor: vals.map(v => (v >= 50 ? C.upFill : C.downFill)), borderColor: vals.map(v => (v >= 50 ? C.up : C.down)), borderWidth: 1, borderRadius: 3 }] },
-    options: { ...base, scales: { x: { grid: { display: false } }, y: pctAxis },
-      plugins: { ...base.plugins, tooltip: { ...tip, callbacks: { label: ctx => ` ${ctx.parsed.y}% win rate · ${map[keys[ctx.dataIndex]].w + map[keys[ctx.dataIndex]].l} decided` } } } },
+    options: { ...base, indexAxis: horizontal ? "y" : "x", scales: horizontal ? { y: cats, x: pctAxis } : { x: cats, y: pctAxis },
+      plugins: { ...base.plugins, tooltip: { ...tip, callbacks: { label: ctx => ` ${ctx.parsed[v]}% win rate · ${map[keys[ctx.dataIndex]].w + map[keys[ctx.dataIndex]].l} decided` } } } },
   });
 }
 
@@ -58,7 +70,7 @@ function wrAndPnl(key, canvasId, map, keys) {
     ] },
     options: { responsive: true, maintainAspectRatio: false,
       plugins: { legend: { labels: { color: C.text } }, tooltip: { ...tip, callbacks: { label: ctx => (ctx.dataset.yAxisID === "y" ? ` ${ctx.parsed.y}% win rate` : ` $${ctx.parsed.y.toFixed(2)}`) } } },
-      scales: { x: { grid: { display: false } }, y: { ...pctAxis, position: "left" }, y1: { position: "right", ticks: { callback: v => "$" + v }, grid: { display: false } } } },
+      scales: { x: cats, y: { ...pctAxis, position: "left" }, y1: { position: "right", ticks: { callback: v => "$" + v }, grid: { display: false } } } },
   });
 }
 
@@ -81,21 +93,24 @@ export function renderCharts() {
         return g;
       },
     }] },
-    options: { ...base, scales: { x: { ticks: { maxTicksLimit: 8, maxRotation: 0 }, grid: { color: C.grid } }, y: { ticks: { callback: v => "$" + v }, grid: { color: C.grid } } },
+    options: { ...base, scales: {
+      x: { ticks: { maxTicksLimit: 6, maxRotation: 0, callback(v) { return shortDate(this.getLabelForValue(v)); } }, grid: { color: C.grid } },
+      y: { ticks: { callback: v => "$" + v }, grid: { color: C.grid } } },
       plugins: { ...base.plugins, tooltip: { ...tip, callbacks: { label: ctx => ` $${ctx.parsed.y.toFixed(2)}` } } } },
   });
 
   const strat = St.byStrategy(t);
   const stratKeys = Object.keys(strat).filter(k => strat[k].w + strat[k].l).sort((a, b) => strat[b].w / (strat[b].w + strat[b].l) - strat[a].w / (strat[a].w + strat[a].l));
-  wrBar("wr", "chart-wr", strat, stratKeys);
+  wrBar("wr", "chart-wr", strat, stratKeys, { horizontal: true });
 
   const pnlKeys = Object.keys(strat).sort((a, b) => strat[b].pnl - strat[a].pnl);
   const pnlVals = pnlKeys.map(k => +strat[k].pnl.toFixed(2));
+  fitRows("chart-strat-pnl", pnlKeys.length);
   draw("strat-pnl", "chart-strat-pnl", {
     type: "bar",
     data: { labels: pnlKeys, datasets: [{ data: pnlVals, backgroundColor: sign(pnlVals, C.upFill, C.downFill), borderColor: sign(pnlVals, C.up, C.down), borderWidth: 1, borderRadius: 3 }] },
-    options: { ...base, scales: { x: { grid: { display: false } }, y: { ticks: { callback: v => "$" + v }, grid: { color: C.grid } } },
-      plugins: { ...base.plugins, tooltip: { ...tip, callbacks: { label: ctx => ` $${ctx.parsed.y.toFixed(2)}` } } } },
+    options: { ...base, indexAxis: "y", scales: { y: cats, x: { ticks: { callback: v => "$" + v, maxTicksLimit: 5 }, grid: { color: C.grid } } },
+      plugins: { ...base.plugins, tooltip: { ...tip, callbacks: { label: ctx => ` $${ctx.parsed.x.toFixed(2)}` } } } },
   });
 
   const ct = St.byCopyTrader(t);
@@ -122,11 +137,13 @@ export function renderCharts() {
   wrAndPnl("weekday", "chart-weekday", wd, St.WEEKDAYS.filter(d => wd[d]));
 
   const mist = St.mistakeCounts(t);
+  const cost = St.mistakeCosts(t).by;
   const mk = Object.keys(mist).sort((a, b) => mist[b] - mist[a]);
+  fitRows("chart-mistakes", mk.length);
   draw("mistakes", "chart-mistakes", {
     type: "bar",
     data: { labels: mk, datasets: [{ data: mk.map(k => mist[k]), backgroundColor: "rgba(255,107,107,0.65)", borderColor: C.down, borderWidth: 1, borderRadius: 3 }] },
-    options: { ...base, scales: { x: { grid: { display: false } }, y: { ticks: { stepSize: 1 }, grid: { color: C.grid } } },
-      plugins: { ...base.plugins, tooltip: { ...tip, callbacks: { label: ctx => ` ${ctx.parsed.y} time${ctx.parsed.y !== 1 ? "s" : ""}` } } } },
+    options: { ...base, indexAxis: "y", scales: { y: cats, x: { ticks: { stepSize: 1, maxRotation: 0 }, grid: { color: C.grid } } },
+      plugins: { ...base.plugins, tooltip: { ...tip, callbacks: { label: ctx => ` ${ctx.parsed.x} time${ctx.parsed.x !== 1 ? "s" : ""} · ${money(cost[mk[ctx.dataIndex]].pnl)}` } } } },
   });
 }

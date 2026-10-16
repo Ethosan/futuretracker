@@ -34,6 +34,16 @@
 
 .main { flex: 1; overflow-y: auto; background: var(--bg); min-width: 0 }
 .mobile-bar { display: none }
+.top-stack { position: sticky; top: 0; z-index: 10 }
+.demo-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 8px 32px; font-size: var(--fs-xs); color: var(--amber);
+  background: #2a2217; border-bottom: 1px solid rgba(255, 193, 102, 0.3);
+}
+.demo-banner b { font-weight: 500 }
+.demo-banner .btn-small { color: var(--amber); border-color: rgba(255, 193, 102, 0.45); white-space: nowrap; flex-shrink: 0 }
+.demo-banner .btn-small:hover { border-color: var(--amber) }
+.demo-short { display: none }
 .view { display: none; padding: 28px 32px; max-width: 1400px }
 .view.active { display: block }
 
@@ -69,10 +79,14 @@
 
   .main { order: 1 }
   .mobile-bar {
-    display: flex; gap: 8px; align-items: center; position: sticky; top: 0; z-index: 10;
-    padding: 10px 16px; padding-top: max(10px, env(safe-area-inset-top));
+    display: flex; gap: 8px; align-items: center;
+    padding: 10px 16px;
     background: rgba(20, 20, 20, 0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border);
   }
+  .top-stack { padding-top: env(safe-area-inset-top); background: rgba(20, 20, 20, 0.92) }
+  .demo-banner { padding: 7px 16px }
+  .demo-long { display: none }
+  .demo-short { display: inline }
   .mobile-bar .acct-switcher { flex: 1; margin: 0 }
   .mobile-bar .acct-btn { padding: 8px 6px; font-size: var(--fs-sm) }
 

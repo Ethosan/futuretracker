@@ -6,17 +6,20 @@ import "./styles/views.css";
 import "./styles/panels.css";
 
 import { CACHE_TTL } from "./config.js";
-import { S, sheet } from "./state.js";
+import { S, initState, store, storageMode } from "./state.js";
 import { localISODate } from "./lib/format.js";
 import { $, toast, setSyncStatus } from "./ui/dom.js";
-import { initForm, editTrade } from "./ui/form.js";
+import { initForm, editTrade, syncLabel } from "./ui/form.js";
 import { initLog, renderLog } from "./ui/log.js";
 import { initDetail, showTrade, showDay } from "./ui/detail.js";
 import { renderStats } from "./ui/stats-view.js";
 import { renderCharts } from "./ui/charts-view.js";
 import { initReview, renderReview } from "./ui/review-view.js";
 import { initHeatmap, renderHeatmap } from "./ui/heatmap-view.js";
-import { initSettings, tzLabel } from "./ui/settings.js";
+import { initSettings, logoSub } from "./ui/settings.js";
+
+/* ?demo loads the sample journal in memory. Decide before anything reads config. */
+initState({ demo: new URLSearchParams(location.search).has("demo") });
 
 const RENDER = {
   "trade-log": renderLog,
@@ -35,9 +38,9 @@ async function loadTrades(force = false) {
   $("log-loading").hidden = false;
   loading = (async () => {
     try {
-      S.trades = await sheet().loadTrades();
+      S.trades = await store().loadTrades();
       S.loadedAt = Date.now();
-      setSyncStatus("ok", "Synced · " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+      setSyncStatus("ok", storageMode() === "sheet" ? "Synced · " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : syncLabel());
     } catch {
       setSyncStatus("err", "Sync failed");
       toast("Couldn't load trades. Check your connection.", true);
@@ -85,11 +88,12 @@ function setAccount(acct) {
 function showApp() {
   $("setup-screen").hidden = true;
   $("app").hidden = false;
-  $("logo-sub").textContent = "Personal · " + tzLabel(S.cfg.timezone);
+  $("demo-banner").hidden = !S.demo;
+  $("logo-sub").textContent = logoSub();
   $("f-date").value = localISODate();
-  setSyncStatus("loading", "Connecting...");
-  sheet().ensureHeaders()
-    .then(() => { setSyncStatus("ok", "Connected"); return loadTrades(true); })
+  setSyncStatus("loading", storageMode() === "sheet" ? "Connecting..." : "Loading...");
+  store().ensureHeaders()
+    .then(() => { setSyncStatus("ok", storageMode() === "sheet" ? "Connected" : syncLabel()); return loadTrades(true); })
     .then(renderCurrent)
     .catch(() => {
       setSyncStatus("err", "Connection failed");
@@ -97,11 +101,18 @@ function showApp() {
     });
 }
 
+/* Leave the demo: same page without ?demo, so the normal setup (or your own journal) loads. */
+function exitDemo() {
+  const url = new URL(location.href);
+  url.searchParams.delete("demo");
+  location.replace(url);
+}
+
 document.querySelectorAll(".nav-item[data-view]").forEach(n => n.addEventListener("click", () => goTo(n.dataset.view)));
 document.querySelectorAll("[data-account]").forEach(b => b.addEventListener("click", () => setAccount(b.dataset.account)));
 
 initForm({ afterSave: () => { S.loadedAt = Date.now(); } });
-initLog({ open: showTrade, refresh: () => loadTrades(true).then(renderCurrent) });
+initLog({ open: showTrade, refresh: () => loadTrades(true).then(renderCurrent), imported: () => { S.loadedAt = Date.now(); renderCurrent(); } });
 initDetail({ edit: id => { goTo("log-trade"); editTrade(id); } });
 initReview();
 initHeatmap({ openDay: showDay });
@@ -109,13 +120,14 @@ initSettings({
   connected: showApp,
   reconnect: changed => {
     if (changed === false) { renderCurrent(); return; }
-    setSyncStatus("ok", "Connected");
+    setSyncStatus("ok", storageMode() === "sheet" ? "Connected" : syncLabel());
     loadTrades(true).then(renderCurrent);
   },
 });
 setAccount("all");
+$("exit-demo").addEventListener("click", exitDemo);
 
-if (S.cfg?.scriptUrl) showApp();
+if (storageMode()) showApp();
 else $("setup-screen").hidden = false;
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {

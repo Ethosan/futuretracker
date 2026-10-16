@@ -1,12 +1,15 @@
 /* Log Trade form: entry/exit legs, live P&L maths, tags, save and edit. */
 import { STRATEGIES, MISTAKES, OUTCOMES } from "../config.js";
-import { S, sheet, getCopyTraders, findTrade } from "../state.js";
+import { S, store, storageMode, getCopyTraders, findTrade } from "../state.js";
 import { computeTrade, encodeNotesWithLegs } from "../lib/calc.js";
-import { normalizeTrade } from "../lib/sheets.js";
+import { normalizeTrade } from "../lib/rows.js";
 import { escapeHtml, localISODate, splitStrats } from "../lib/format.js";
 import { $, toast, setSyncStatus, busy, pressGroup, pressedValues } from "./dom.js";
 
 let onSaved = () => {};
+
+/* Status line text after a successful save or load. */
+export const syncLabel = () => ({ demo: "Demo data, not saved", local: "Saved on this device" }[storageMode()] || "Synced");
 
 /* Plain fields saved to the sheet as typed, keyed by trade column. */
 const FIELDS = {
@@ -144,12 +147,13 @@ async function submit() {
   const row = readForm(editing || Date.now().toString());
   setSyncStatus("loading", editing ? "Updating..." : "Saving...");
   try {
-    await busy($("save-btn"), editing ? "Updating" : "Saving", () => (editing ? sheet().update(row) : sheet().append(row)));
+    await busy($("save-btn"), editing ? "Updating" : "Saving", () => (editing ? store().update(row) : store().append(row)));
     const trade = normalizeTrade(row);
     const idx = S.trades.findIndex(t => t.id === trade.id);
     if (idx >= 0) S.trades[idx] = trade; else S.trades.push(trade);
-    toast(editing ? "Trade updated." : "Trade saved.");
-    setSyncStatus("ok", "Synced");
+    const where = { demo: " Demo, so this tab only.", local: " On this device." }[storageMode()] || "";
+    toast((editing ? "Trade updated." : "Trade saved.") + where);
+    setSyncStatus("ok", syncLabel());
     exitEditMode();
     onSaved();
   } catch (e) {

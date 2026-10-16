@@ -2,7 +2,7 @@
   "name": "futuretracker",
   "version": "2.0.0",
   "private": true,
-  "description": "Trade Journal: a personal futures trading journal that syncs to your own Google Sheet.",
+  "description": "Trade Journal: a personal futures trading journal that saves to your own Google Sheet or the browser, with a built-in demo.",
   "type": "module",
   "scripts": {
     "dev": "vite",

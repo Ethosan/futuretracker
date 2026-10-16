@@ -2,11 +2,11 @@ export function escapeHtml(s) {
   return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-/* +$12.50 / -$3.00 */
+/* +$12.50 / -$3.00 / -$1,737.11 */
 export function money(v, { sign = true } = {}) {
   const n = Number(v) || 0;
   const s = n < 0 ? "-" : sign ? "+" : "";
-  return s + "$" + Math.abs(n).toFixed(2);
+  return s + "$" + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 export const pnlClass = v => (v >= 0 ? "pos" : "neg");
