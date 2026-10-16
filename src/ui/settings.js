@@ -1,16 +1,19 @@
 /* Setup screen (first run) and the Settings sheet. */
 import { TIMEZONES } from "../config.js";
 import { S, saveConfig, clearConfig, forgetDevice, getCopyTraders, setCopyTraders, store, storageMode } from "../state.js";
-import { findOrCreateSheet, sheetUrl } from "../lib/google.js";
+import { findOrCreateSheet, createGoogleStore, sheetUrl } from "../lib/google.js";
+import { tradeToRow } from "../lib/rows.js";
 import { LOCAL_TRADES_KEY } from "../lib/stores.js";
+import { deviceStore, screenshotToDrive } from "./images.js";
 import { googleEnabled, preloadGoogle, getToken, tokenExpired, signOut } from "../google-auth.js";
-import { escapeHtml } from "../lib/format.js";
+import { escapeHtml, plural } from "../lib/format.js";
 import { $, toast, setSyncStatus, busy } from "./dom.js";
 import { renderCopyTraderTags } from "./form.js";
 import APPS_SCRIPT from "../../apps-script/Code.gs?raw";
 
 let lastFocus = null;
 let onConnected = () => {};
+let onReconnect = () => {};
 
 export const tzLabel = tz => (tz ? TIMEZONES.find(t => t[1] === tz)?.[0]?.split(" (")[0] || tz : "Local time");
 const validUrl = u => /^https:\/\/script\.google\.com\/\S+$/.test(u);
@@ -80,7 +83,60 @@ async function startGoogle() {
   }
 }
 
+/* Apps Script or device -> Sign in with Google, in one tap. Copies every trade
+   (device screenshots go to Drive too), checks they all arrived, then
+   switches. The old Apps Script URL and imgbb key are dropped from this
+   device. Sign-in comes first so Google's pop-up opens from the tap. */
+async function moveToGoogle() {
+  const from = storageMode();
+  const btn = $("move-btn");
+  let moved = 0, total = 0;
+  try {
+    await busy(btn, "Signing in", async () => {
+      const say = text => { btn.firstChild.textContent = text; };
+      await getToken({ interactive: true });
+      say("Reading your trades");
+      const trades = await store().loadTrades();
+      total = trades.length;
+      const { spreadsheetId } = await findOrCreateSheet({ getToken, onExpired: tokenExpired });
+      const target = createGoogleStore({ spreadsheetId, getToken, onExpired: tokenExpired });
+      await target.ensureHeaders();
+      const have = new Set((await target.loadTrades()).map(t => t.id));
+      const rows = [];
+      for (const t of trades.filter(t => !have.has(t.id))) {
+        say(`Copying ${rows.length + 1} of ${total}`);
+        const row = tradeToRow(t);
+        row.chart = await screenshotToDrive(row.chart);
+        rows.push(row);
+      }
+      if (rows.length) await target.appendMany(rows);
+      say("Checking");
+      const arrived = new Set((await target.loadTrades()).map(t => t.id));
+      if (!trades.every(t => arrived.has(t.id))) throw new Error("Some trades didn't arrive. Nothing was switched, so try again.");
+      moved = rows.length;
+      saveConfig({ mode: "google", spreadsheetId, timezone: S.cfg.timezone || "" });
+    });
+  } catch (e) {
+    toast(e.name === "NeedsSignIn" ? "Google sign-in didn't finish. Allow pop-ups for this site and try again." : "Move failed. " + e.message, true);
+    return;
+  }
+  closeSettings();
+  $("logo-sub").textContent = logoSub();
+  onReconnect();
+  if (from === "local" && total && confirm(`${total === 1 ? "Your trade is" : `All ${total} trades are`} now in your Google Drive. Delete the copy saved in this browser?`)) {
+    localStorage.removeItem(LOCAL_TRADES_KEY);
+    deviceStore().clear().catch(() => {});
+  }
+  toast(from === "sheet"
+    ? `Done. ${plural(moved, "trade")} moved to a private sheet. You can now delete the old Apps Script deployment.`
+    : `Done. ${plural(moved, "trade")} moved to a private sheet in your Google Drive.`);
+}
+
 /* --------------------------------------------------------------- settings */
+const MOVE_NOTE = {
+  sheet: "Safer than the Apps Script: no public web app URL, and screenshots stay private. Your trades are copied over; the old sheet isn't changed.",
+  local: "Keeps your trades in a private sheet in your Google Drive, so they're backed up and on every device. Screenshots come too.",
+};
 const MODE_NOTE = {
   google: 'Trades go to the "Trade Journal" sheet in your Google Drive. The journal can only see files it made.',
   demo: "This is the demo. Nothing here is saved, and it never connects to a Google Sheet.",
@@ -116,9 +172,11 @@ export function openSettings() {
   $("set-mode-note").hidden = !MODE_NOTE[mode];
   $("set-sheet-row").hidden = mode === "demo" || mode === "google";
   $("set-open-sheet-wrap").hidden = mode !== "google";
+  $("move-google").hidden = !(googleEnabled() && MOVE_NOTE[mode]);
+  $("move-note").textContent = MOVE_NOTE[mode] || "";
   if (mode === "google") $("set-open-sheet").href = sheetUrl(S.cfg.spreadsheetId);
   $("set-danger").hidden = mode === "demo";
-  $("set-imgbb-section").hidden = mode === "google";
+  $("set-imgbb-section").hidden = mode !== "sheet";
   $("wipe-row").hidden = mode !== "local";
   $("reset-lbl").textContent = mode === "google" ? "Sign out" : "Reset connection";
   $("reset-btn").textContent = mode === "google" ? "Sign out" : "Reset";
@@ -177,6 +235,8 @@ export function logoSub() {
 
 export function initSettings({ connected, reconnect }) {
   onConnected = connected;
+  onReconnect = reconnect;
+  $("move-btn").addEventListener("click", moveToGoogle);
   /* Show the backend code without its header comment. */
   $("script-block").textContent = APPS_SCRIPT.replace(/^(\/\/.*\n)+\n?/, "").trim();
 
@@ -231,7 +291,7 @@ export function initSettings({ connected, reconnect }) {
   $("wipe-btn").addEventListener("click", () => {
     if (!confirm("Delete every trade saved in this browser? This can't be undone.")) return;
     localStorage.removeItem(LOCAL_TRADES_KEY);
-    location.reload();
+    deviceStore().clear().catch(() => {}).finally(() => location.reload());
   });
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeSettings(); });
 }

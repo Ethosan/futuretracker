@@ -1,8 +1,7 @@
 /* CSV export and import, in sheet column order. Used for backups and for
    moving trades between this device, a Google Sheet, or a new web address. */
 import { COLS } from "../config.js";
-import { encodeNotesWithLegs } from "./calc.js";
-import { asPlainText, isFormulaLike } from "./rows.js";
+import { asPlainText, isFormulaLike, tradeToRow } from "./rows.js";
 
 /* Formula-looking text gets an apostrophe so Excel or Sheets won't run it. */
 const cell = v => {
@@ -12,7 +11,7 @@ const cell = v => {
 
 /* Trades back to stored rows: multi-leg detail goes back into notes. */
 export function tradesToCsv(trades) {
-  const row = t => COLS.map(c => (c === "notes" ? encodeNotesWithLegs(t.notes || "", t.legs?.entry || [], t.legs?.exit || []) : t[c]));
+  const row = t => { const r = tradeToRow(t); return COLS.map(c => r[c]); };
   return [COLS.join(","), ...trades.map(t => row(t).map(cell).join(","))].join("\n");
 }
 

@@ -3,7 +3,8 @@
 // Web app (Execute as: Me, Who has access: Anyone). See the README.
 
 function doGet(e) {
-  var cb = e.parameter.callback;
+  // Only a plain function name, so the reply can't carry other code.
+  var cb = /^[A-Za-z_$][\w$]*$/.test(e.parameter.callback || '') ? e.parameter.callback : 'callback';
   var payload = e.parameter.payload;
   var ss = SpreadsheetApp.getActiveSpreadsheet();
 
@@ -45,6 +46,17 @@ function doGet(e) {
       for (var i = 1; i < vals.length; i++) {
         if (String(vals[i][0]) === String(id)) {
           sheet.getRange(i + 1, 1, 1, data.row.length).setValues([data.row]);
+          return out(cb, { status: 'ok' });
+        }
+      }
+      return out(cb, { status: 'not_found' });
+    }
+
+    if (data.action === 'delete') {
+      var ids = sheet.getDataRange().getValues();
+      for (var j = 1; j < ids.length; j++) {
+        if (String(ids[j][0]) === String(data.id)) {
+          sheet.deleteRow(j + 1);
           return out(cb, { status: 'ok' });
         }
       }

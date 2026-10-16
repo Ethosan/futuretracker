@@ -42,9 +42,9 @@ function draw(key, canvasId, config) {
   charts[key] = new Chart($(canvasId), config);
 }
 
-/* Win rate (wins over decided trades) per group, in the given key order. */
+/* Win rate per group: wins over all trades, the same as Stats. */
 function winRates(map, keys) {
-  return keys.map(k => { const g = map[k]; const d = g.w + g.l; return d ? Math.round(g.w / d * 100) : 0; });
+  return keys.map(k => { const g = map[k]; return g.tot ? Math.round(g.w / g.tot * 100) : 0; });
 }
 
 function wrBar(key, canvasId, map, keys, { horizontal = false } = {}) {
@@ -55,7 +55,7 @@ function wrBar(key, canvasId, map, keys, { horizontal = false } = {}) {
     type: "bar",
     data: { labels: keys, datasets: [{ data: vals, backgroundColor: vals.map(v => (v >= 50 ? C.upFill : C.downFill)), borderColor: vals.map(v => (v >= 50 ? C.up : C.down)), borderWidth: 1, borderRadius: 3 }] },
     options: { ...base, indexAxis: horizontal ? "y" : "x", scales: horizontal ? { y: cats, x: pctAxis } : { x: cats, y: pctAxis },
-      plugins: { ...base.plugins, tooltip: { ...tip, callbacks: { label: ctx => ` ${ctx.parsed[v]}% win rate · ${map[keys[ctx.dataIndex]].w + map[keys[ctx.dataIndex]].l} decided` } } } },
+      plugins: { ...base.plugins, tooltip: { ...tip, callbacks: { label: ctx => ` ${ctx.parsed[v]}% win rate · ${map[keys[ctx.dataIndex]].tot} trades` } } } },
   });
 }
 
@@ -100,7 +100,7 @@ export function renderCharts() {
   });
 
   const strat = St.byStrategy(t);
-  const stratKeys = Object.keys(strat).filter(k => strat[k].w + strat[k].l).sort((a, b) => strat[b].w / (strat[b].w + strat[b].l) - strat[a].w / (strat[a].w + strat[a].l));
+  const stratKeys = Object.keys(strat).sort((a, b) => strat[b].w / strat[b].tot - strat[a].w / strat[a].tot);
   wrBar("wr", "chart-wr", strat, stratKeys, { horizontal: true });
 
   const pnlKeys = Object.keys(strat).sort((a, b) => strat[b].pnl - strat[a].pnl);

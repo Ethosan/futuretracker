@@ -6,12 +6,13 @@ import "./styles/views.css";
 import "./styles/panels.css";
 
 import { CACHE_TTL } from "./config.js";
-import { S, initState, store, storageMode } from "./state.js";
-import { localISODate } from "./lib/format.js";
-import { $, toast, setSyncStatus } from "./ui/dom.js";
-import { initForm, editTrade, syncLabel } from "./ui/form.js";
+import { S, initState, store, storageMode, findTrade } from "./state.js";
+import { localISODate, money } from "./lib/format.js";
+import { $, toast, setSyncStatus, busy } from "./ui/dom.js";
+import { forgetScreenshot } from "./ui/images.js";
+import { initForm, editTrade, cancelEdit, syncLabel } from "./ui/form.js";
 import { initLog, renderLog } from "./ui/log.js";
-import { initDetail, showTrade, showDay } from "./ui/detail.js";
+import { initDetail, showTrade, showDay, closeDetail } from "./ui/detail.js";
 import { renderStats } from "./ui/stats-view.js";
 import { renderCharts } from "./ui/charts-view.js";
 import { initReview, renderReview } from "./ui/review-view.js";
@@ -41,8 +42,13 @@ async function loadTrades(force = false) {
   $("log-loading").hidden = false;
   loading = (async () => {
     try {
+      const first = !S.loadedAt;
       S.trades = await store().loadTrades();
       S.loadedAt = Date.now();
+      /* Open the heatmap on a year that has trades. */
+      if (first && S.trades.length && !S.trades.some(t => t.date?.startsWith(String(S.heatmapYear)))) {
+        S.heatmapYear = +S.trades.reduce((a, t) => (t.date > a ? t.date : a), "").slice(0, 4) || S.heatmapYear;
+      }
       setSyncStatus("ok", remote() ? "Synced · " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : syncLabel());
     } catch (e) {
       setSyncStatus("err", e.name === "NeedsSignIn" ? "Sign in needed" : "Sync failed");
@@ -87,6 +93,25 @@ function setAccount(acct) {
   renderCurrent();
 }
 
+/* Delete after a confirm. The trade leaves the store first, then the screen. */
+async function deleteTrade(id) {
+  const t = findTrade(id);
+  if (!t) return;
+  const what = `${t.instrument || "Trade"} ${t.date} ${money(t.netPnl)}`;
+  if (!confirm(`Delete this trade? ${what}\n\nThis can't be undone.`)) return;
+  try {
+    await busy($("review-delete"), "Deleting", () => store().remove(t.id));
+    S.trades = S.trades.filter(x => x.id !== t.id);
+    forgetScreenshot(t.chart);
+    if (S.editingId === t.id) cancelEdit();
+    closeDetail();
+    renderCurrent();
+    toast("Trade deleted.");
+  } catch (e) {
+    toast("Couldn't delete it. " + e.message, true);
+  }
+}
+
 /* ------------------------------------------------------------------ boot */
 function showApp() {
   $("setup-screen").hidden = true;
@@ -117,7 +142,7 @@ document.querySelectorAll("[data-account]").forEach(b => b.addEventListener("cli
 
 initForm({ afterSave: () => { S.loadedAt = Date.now(); } });
 initLog({ open: showTrade, refresh: () => loadTrades(true).then(renderCurrent), imported: () => { S.loadedAt = Date.now(); renderCurrent(); } });
-initDetail({ edit: id => { goTo("log-trade"); editTrade(id); } });
+initDetail({ edit: id => { goTo("log-trade"); editTrade(id); }, remove: deleteTrade });
 initReview();
 initHeatmap({ openDay: showDay });
 initSettings({

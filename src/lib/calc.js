@@ -82,3 +82,28 @@ export function rMultiple(t) {
   const risk = plannedRisk(t);
   return risk ? t.netPnl / risk : null;
 }
+
+/* Outcome from net P&L, for when the user doesn't pick one. */
+export const outcomeFor = net => (net > 0 ? "W" : net < 0 ? "L" : "BE");
+
+/* What's missing or contradictory before a trade can be saved.
+   Returns [{ field, message }], empty when the trade is fine. */
+export function validateTrade({ instrument, dir, entryLegs, exitLegs, stop, target }) {
+  const errors = [];
+  const add = (field, message) => errors.push({ field, message });
+  if (!instrument) add("f-instrument", "Pick an instrument.");
+  if (dir !== "Long" && dir !== "Short") add("f-dir", "Pick Long or Short. It decides whether price going up is a win.");
+  if (!entryLegs.length) add("entry-legs", "Add an entry price.");
+  if (!exitLegs.length) add("exit-legs", "Add an exit price.");
+  const entry = weightedAvg(entryLegs);
+  if (entry && exitLegs.length) {
+    const out = exitLegs.reduce((a, l) => a + l.contracts, 0);
+    if (out > entry.total) add("exit-legs", `You exited ${out} contracts but only entered ${entry.total}.`);
+  }
+  if (entry && (dir === "Long" || dir === "Short")) {
+    const long = dir === "Long";
+    if (stop && (long ? stop >= entry.avg : stop <= entry.avg)) add("f-stop", `For a ${dir.toLowerCase()}, the stop goes ${long ? "below" : "above"} the entry (${entry.avg.toFixed(2)}).`);
+    if (target && (long ? target <= entry.avg : target >= entry.avg)) add("f-target", `For a ${dir.toLowerCase()}, the target goes ${long ? "above" : "below"} the entry (${entry.avg.toFixed(2)}).`);
+  }
+  return errors;
+}

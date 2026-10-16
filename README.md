@@ -15,6 +15,8 @@ I built it to find out why my account kept going down. It showed me: the trades 
 - **Heatmap:** a year of daily P&L. Tap a day to see its trades.
 - **Live / Prop** account filter across every view. Installable and usable on a phone.
 - **CSV export and import** in sheet column order, legs included, for backups and moving between storage options.
+- **Checks before saving:** instrument, Long or Short, entry and exit prices, a stop and target on the right side of the entry, and no more contracts out than in. If you don't pick Win, Loss or BE, the P&L decides. A leg with no lots uses the Contracts field.
+- **Delete a trade** from its detail panel. (Apps Script users: paste the new `Code.gs` and make a New deployment for this.)
 
 ## Demo
 
@@ -39,12 +41,12 @@ Device-only trades stay in that one browser on that one web address. Use **Expor
 
 - **No server of ours.** Trades go straight from the browser to the user's own Google Drive, their own Apps Script, or their own browser storage.
 - **Sign in with Google** uses only the `drive.file` permission: the app can open files it made, nothing else in the Drive. The sheet and the screenshots folder are private to the user. The access token lives in the tab (sessionStorage) for about an hour. **Sign out** revokes it and removes the app's settings from the browser.
-- **Screenshots** in Google mode are private Drive files, fetched with the token and shown as `blob:` URLs. In the other modes imgbb is optional and its links are public; the app says so.
+- **Screenshots stay private.** Google mode: files in a private Drive folder, fetched with the token. This device and the demo: the browser's own IndexedDB. imgbb (public links) is only used by Apps Script setups that already have a key.
 - **Content Security Policy** in `netlify.toml`: scripts only from this site, Google sign-in and Apps Script; data only to Sheets, Drive, Google sign-in and imgbb. No inline scripts. Plus HSTS, `X-Frame-Options: DENY`, `nosniff`, and a pop-up-safe COOP for Google sign-in.
 - **Spreadsheet formulas:** Google mode writes cells as raw text, so nothing typed is ever run as a formula. Apps Script writes and CSV exports put an apostrophe in front of text that looks like a formula (`=`, `+`, `@`, `-` before non-numbers). CSV import takes it off again.
 - **Everything shown on screen is escaped**, including imported CSVs and sheet contents.
-- **Apps Script mode** is the weakest: the web app runs as "Anyone", so its URL works like a password, and JSONP sends rows in the URL. Prefer Sign in with Google.
-- **This device** mode is as private as the browser profile. Settings has **Delete trades on this device**.
+- **Apps Script mode** is the weakest: the web app runs as "Anyone", so its URL works like a password, and JSONP sends rows in the URL. **Settings → Move to Google sign-in** copies every trade (and device screenshots) into a private Google sheet, checks they all arrived, switches, and forgets the Apps Script URL and imgbb key. Then delete the old deployment in Apps Script. The script also now only accepts a plain function name as its JSONP callback.
+- **This device** mode is as private as the browser profile. Settings has **Delete trades on this device** (screenshots too), and **Move to Google sign-in** for a backup on every device.
 
 `tests/security.test.js` covers the formula guard and private screenshots; `tests/demo.test.js` checks demo mode makes no network calls and writes nothing.
 

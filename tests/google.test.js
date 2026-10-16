@@ -60,6 +60,25 @@ describe("Sign in with Google", () => {
     await expect(s.update({ id: "missing" })).rejects.toThrow("not found");
   });
 
+  it("deletes the right row and moves many rows in one request", async () => {
+    const g = fakeGoogle();
+    const batch = [];
+    const f = async (url, opts = {}) => {
+      if (url.endsWith(":batchUpdate")) { batch.push(JSON.parse(opts.body)); return { ok: true, status: 200, json: async () => ({}) }; }
+      if (url.includes("fields=sheets.properties")) return { ok: true, status: 200, json: async () => ({ sheets: [{ properties: { sheetId: 77, title: "Trades" } }] }) };
+      return g.fetch(url, opts);
+    };
+    const s = createGoogleStore({ spreadsheetId: "id", getToken, fetch: f });
+    await s.ensureHeaders();
+    const rows = generateDemoRows().slice(0, 3);
+    await s.appendMany(rows);
+    expect(g.sheet.length).toBe(4);
+    expect(g.calls.filter(c => c.includes(":append")).length).toBe(1);
+    await s.remove(rows[1].id);
+    expect(batch[0].requests[0].deleteDimension.range).toEqual({ sheetId: 77, dimension: "ROWS", startIndex: 2, endIndex: 3 });
+    await expect(s.remove("missing")).rejects.toThrow("not found");
+  });
+
   it("an expired token asks for sign-in instead of failing quietly", async () => {
     const g = fakeGoogle({ status: 401 });
     const onExpired = vi.fn();

@@ -22,6 +22,13 @@ function rowStore(read, write, kind) {
       write(rows);
       return { status: "ok" };
     },
+    async remove(id) {
+      const rows = read();
+      const next = rows.filter(r => String(r.id) !== String(id));
+      if (next.length === rows.length) throw new Error("Trade not found");
+      write(next);
+      return { status: "ok" };
+    },
   };
 }
 

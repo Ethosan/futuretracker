@@ -70,7 +70,22 @@ export function createGoogleStore({ spreadsheetId, getToken, onExpired, fetch: f
       return rowsToTrades((await call(values(TAB))).values || []);
     },
     append(row) {
-      return call(values(`${TAB}!A1`, ":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS"), { method: "POST", body: { values: [toRow(row)] } });
+      return this.appendMany([row]);
+    },
+    /* Many rows in one request (moving a whole journal in). */
+    appendMany(rows) {
+      return call(values(`${TAB}!A1`, ":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS"), { method: "POST", body: { values: rows.map(toRow) } });
+    },
+    async remove(id) {
+      const ids = (await call(values(`${TAB}!A:A`))).values || [];
+      const i = ids.findIndex(r => String(r[0]) === String(id));
+      if (i < 1) throw new Error("Trade not found in the sheet");
+      const meta = await call(`${SHEETS}/${spreadsheetId}?fields=sheets.properties(sheetId,title)`);
+      const sheetId = meta.sheets.find(s => s.properties.title === TAB)?.properties.sheetId ?? 0;
+      return call(`${SHEETS}/${spreadsheetId}:batchUpdate`, {
+        method: "POST",
+        body: { requests: [{ deleteDimension: { range: { sheetId, dimension: "ROWS", startIndex: i, endIndex: i + 1 } } }] },
+      });
     },
     async update(row) {
       const ids = (await call(values(`${TAB}!A:A`))).values || [];

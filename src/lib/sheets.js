@@ -47,5 +47,12 @@ export function createSheetClient(scriptUrl) {
       if (res && res.status === "not_found") throw new Error("Trade not found in the sheet");
       return res;
     },
+    async remove(id) {
+      const res = await post("delete", { id });
+      if (res?.status === "not_found") throw new Error("Trade not found in the sheet");
+      /* Scripts deployed before delete existed answer with the sheet instead. */
+      if (res?.status !== "ok") throw new Error("Your Apps Script is out of date. Paste the new script and make a New deployment, or move to Google sign-in in Settings.");
+      return res;
+    },
   };
 }

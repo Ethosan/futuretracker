@@ -6,6 +6,7 @@ import { $ } from "./dom.js";
 import { showScreenshot } from "./images.js";
 
 let onEdit = () => {};
+let onDelete = () => {};
 let lastFocus = null;
 
 const outcomeClass = o => (o === "W" ? "out-w" : o === "L" ? "out-l" : "out-be");
@@ -38,6 +39,7 @@ export function showTrade(id) {
   if (!t) return;
   S.reviewId = t.id;
   $("review-edit").hidden = false;
+  $("review-delete").hidden = false;
   const tz = S.cfg.timezone;
   const dur = durationMinutes(t.entryTime, t.exitTime);
   const r = rMultiple(t);
@@ -102,6 +104,7 @@ export function showDay(date) {
   if (trades.length === 1) { showTrade(trades[0].id); return; }
   S.reviewId = null;
   $("review-edit").hidden = true;
+  $("review-delete").hidden = true;
   const pnl = trades.reduce((a, t) => a + t.netPnl, 0);
   const w = trades.filter(t => t.outcome === "W").length;
   $("review-title").innerHTML = `<span class="review-sym">${escapeHtml(date)}</span>
@@ -116,8 +119,10 @@ export function showDay(date) {
   open();
 }
 
-export function initDetail({ edit }) {
+export function initDetail({ edit, remove }) {
   onEdit = edit;
+  onDelete = remove;
+  $("review-delete").addEventListener("click", () => onDelete(S.reviewId));
   $("review-overlay").addEventListener("click", closeDetail);
   $("review-close").addEventListener("click", closeDetail);
   $("review-edit").addEventListener("click", () => {

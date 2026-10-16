@@ -97,6 +97,8 @@
 .btn-ghost { color: var(--muted); border-color: var(--border2) }
 .btn-ghost:hover { color: var(--text); border-color: var(--muted) }
 .btn-ghost.danger { color: var(--red); border-color: rgba(255, 107, 107, 0.35) }
+.form-errors { margin-top: 18px; padding: 10px 14px 10px 30px; border: 1px solid rgba(255, 107, 107, 0.35); border-radius: 6px; background: var(--red-dim); color: var(--red); font-size: var(--fs-xs); line-height: 1.7 }
+#trade-form [aria-invalid="true"] { border-color: var(--red) }
 .btn-row { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap }
 
 @media (max-width: 768px) {

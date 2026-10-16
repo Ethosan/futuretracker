@@ -1,6 +1,6 @@
 /* Stored rows (sheet, device or demo) to the in-memory trade shape. */
 import { COLS } from "../config.js";
-import { decodeNotesWithLegs } from "./calc.js";
+import { decodeNotesWithLegs, encodeNotesWithLegs } from "./calc.js";
 
 const toNum = v => parseFloat(String(v ?? "").replace(/[$,]/g, "")) || 0;
 
@@ -36,3 +36,11 @@ export const asPlainText = v => (isFormulaLike(v) ? "'" + v : v);
 
 /* Keep only the sheet columns, in a fixed shape, for storing a row. */
 export const pickColumns = row => Object.fromEntries(COLS.map(c => [c, row[c] ?? ""]));
+
+/* A trade in memory back to the stored row shape (legs go back into notes). */
+export function tradeToRow(t) {
+  const row = pickColumns(t);
+  row.notes = encodeNotesWithLegs(t.notes || "", t.legs?.entry || [], t.legs?.exit || []);
+  for (const c of COLS) row[c] = String(row[c] ?? "");
+  return row;
+}

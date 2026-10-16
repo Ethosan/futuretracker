@@ -1,11 +1,11 @@
 /* Log Trade form: entry/exit legs, live P&L maths, tags, save and edit. */
 import { STRATEGIES, MISTAKES, OUTCOMES } from "../config.js";
 import { S, store, storageMode, getCopyTraders, findTrade } from "../state.js";
-import { computeTrade, encodeNotesWithLegs } from "../lib/calc.js";
+import { computeTrade, encodeNotesWithLegs, validateTrade, outcomeFor } from "../lib/calc.js";
 import { normalizeTrade } from "../lib/rows.js";
 import { escapeHtml, localISODate, splitStrats } from "../lib/format.js";
 import { $, toast, setSyncStatus, busy, pressGroup, pressedValues } from "./dom.js";
-import { privateImages, uploadPrivate, showScreenshot, describeRef } from "./images.js";
+import { uploadTarget, uploadPrivate, showScreenshot, describeRef } from "./images.js";
 
 let onSaved = () => {};
 
@@ -41,9 +41,12 @@ function addLeg(type, price, contracts, focus = true) {
   if (focus) row.querySelector(".leg-price").focus();
 }
 
+/* A leg with a price but no lots uses the Contracts field (or 1), so a
+   one-leg trade only needs the price typed. */
 function readLegs(type) {
+  const fallback = parseInt($("f-contracts").value, 10) || 1;
   return [...document.querySelectorAll(`#${type}-legs .leg-row`)]
-    .map(r => ({ price: parseFloat(r.querySelector(".leg-price").value), contracts: parseInt(r.querySelector(".leg-contracts").value, 10) || 0 }))
+    .map(r => ({ price: parseFloat(r.querySelector(".leg-price").value), contracts: parseInt(r.querySelector(".leg-contracts").value, 10) || fallback }))
     .filter(l => l.price > 0 && l.contracts > 0);
 }
 
@@ -125,7 +128,8 @@ function readForm(id) {
   row.strat = strats.join(" | ");
   row.ct = pressedValues($("ct-tags"))[0] || "";
   row.conf = pressedValues($("conf-btns"))[0] || "";
-  row.outcome = pressedValues($("outcome-btns"))[0] || "";
+  /* Not picked: take it from the P&L, so every trade counts in the win rate. */
+  row.outcome = pressedValues($("outcome-btns"))[0] || (last?.net != null ? outcomeFor(last.net) : "");
   row.mistake = pressedValues($("mistake-tags"))[0] || "";
   row.entry = last?.entry ? last.entry.toFixed(2) : "";
   row.exit = last?.exit ? last.exit.toFixed(2) : "";
@@ -138,12 +142,29 @@ function readForm(id) {
   return row;
 }
 
+/* Show what's missing next to the Save button and on the fields themselves. */
+const inputOf = el => (el.matches("input, select") ? el : el.querySelector("input"));
+function showErrors(errors) {
+  document.querySelectorAll("#trade-form [aria-invalid]").forEach(el => el.removeAttribute("aria-invalid"));
+  const box = $("form-errors");
+  box.hidden = !errors.length;
+  box.innerHTML = errors.map(e => `<li>${escapeHtml(e.message)}</li>`).join("");
+  for (const e of errors) inputOf($(e.field))?.setAttribute("aria-invalid", "true");
+  if (errors.length) inputOf($(errors[0].field))?.focus();
+}
+
 async function submit() {
-  if (!$("f-instrument").value) {
-    toast("Select an instrument first.", true);
-    $("f-instrument").focus();
-    return;
-  }
+  recalc();
+  const errors = validateTrade({
+    instrument: $("f-instrument").value,
+    dir: $("f-dir").value,
+    entryLegs: readLegs("entry"),
+    exitLegs: readLegs("exit"),
+    stop: parseFloat($("f-stop").value),
+    target: parseFloat($("f-target").value),
+  });
+  showErrors(errors);
+  if (errors.length) return;
   const editing = S.editingId;
   const row = readForm(editing || Date.now().toString());
   setSyncStatus("loading", editing ? "Updating..." : "Saving...");
@@ -164,6 +185,7 @@ async function submit() {
 }
 
 export function clearForm() {
+  showErrors([]);
   for (const el of [...Object.values(FIELDS), ...DERIVED, "f-strat-custom", "f-notes"]) {
     $(el).value = "";
     $(el).classList.remove("pos", "neg");
@@ -176,6 +198,8 @@ export function clearForm() {
   addLeg("entry", "", "", false);
   addLeg("exit", "", "", false);
 }
+
+export const cancelEdit = () => exitEditMode();
 
 function exitEditMode() {
   S.editingId = null;
@@ -253,8 +277,8 @@ function imageMessage(text, cls) {
   label.className = "img-label " + cls;
 }
 
-/* Google mode: a private file in the user's Drive. */
-async function uploadToDrive(file) {
+/* Google Drive or this device: private, no key needed. */
+async function uploadPrivately(file) {
   $("img-drop-label").hidden = true;
   $("img-uploading").hidden = false;
   $("img-preview-wrap").hidden = true;
@@ -265,17 +289,13 @@ async function uploadToDrive(file) {
     showImage(ref);
   } catch (e) {
     $("img-uploading").hidden = true;
-    imageMessage(e.name === "NeedsSignIn" ? "Sign in with Google again, then add the screenshot." : "Upload to Google Drive failed. Try again.", "err");
+    imageMessage(e.name === "NeedsSignIn" ? "Sign in with Google again, then add the screenshot." : "Couldn't save the screenshot. Try again.", "err");
   }
 }
 
 async function uploadImg(file) {
   if (!file) return;
-  if (privateImages()) { uploadToDrive(file); return; }
-  if (!S.cfg.imgbbKey) {
-    imageMessage("No imgbb API key. Add one in Settings, or paste an image URL below.", "warn");
-    return;
-  }
+  if (uploadTarget() !== "imgbb") { uploadPrivately(file); return; }
   $("img-drop-label").hidden = true;
   $("img-uploading").hidden = false;
   $("img-preview-wrap").hidden = true;

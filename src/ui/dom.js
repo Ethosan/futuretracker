@@ -6,7 +6,8 @@ export function toast(msg, isError = false) {
   el.textContent = msg;
   el.className = "toast show" + (isError ? " err" : "");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.className = "toast" + (isError ? " err" : ""); }, 2600);
+  /* Errors stay longer: they usually say what to do next. */
+  toastTimer = setTimeout(() => { el.className = "toast" + (isError ? " err" : ""); }, isError ? 6000 : 2600);
 }
 
 export function setSyncStatus(state, label) {
