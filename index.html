@@ -28,15 +28,20 @@
         <span class="path-title">Try the demo</span>
         <span class="path-desc">About 120 sample trades over five months. Nothing is saved.</span>
       </a>
+      <button type="button" class="path" id="google-btn" hidden>
+        <span class="path-title">Sign in with Google</span>
+        <span class="path-desc">The journal makes a sheet in your Google Drive. It can only see files it made.</span>
+      </button>
       <button type="button" class="path" id="local-btn">
         <span class="path-title">Use it on this device</span>
         <span class="path-desc">No account. Trades stay in this browser. Export a CSV to back up.</span>
       </button>
-      <a class="path" href="#sheet-setup">
+      <a class="path" href="#sheet-setup" id="script-path">
         <span class="path-title">Connect a Google Sheet</span>
         <span class="path-desc">Trades go to your own sheet and follow you to any device. About five minutes.</span>
       </a>
     </div>
+    <p class="setup-error" id="err-google" role="alert" hidden></p>
 
     <h2 class="setup-h2" id="sheet-setup">Connect a Google Sheet</h2>
     <p class="setup-sub">Do this once per device. The journal only talks to your sheet, through a small script you own.</p>
@@ -136,6 +141,10 @@
       <div class="demo-banner" id="demo-banner" role="status" hidden>
         <p><b>Demo data.</b> <span class="demo-long">Made-up trades. You can log and edit, but changes only last until you close this tab.</span><span class="demo-short">Edits stay in this tab.</span></p>
         <button type="button" class="btn-small" id="exit-demo">Exit demo</button>
+      </div>
+      <div class="demo-banner" id="auth-banner" role="status" hidden>
+        <p><b>Google sign-in ran out.</b> <span>Sign in again to load and save trades.</span></p>
+        <button type="button" class="btn-small" id="reauth-btn">Sign in</button>
       </div>
       <!-- Mobile only: account switcher and settings (the sidebar becomes a tab bar) -->
       <div class="mobile-bar">
@@ -484,6 +493,7 @@
       <section class="settings-section">
         <h3 class="settings-section-lbl">Where trades are kept</h3>
         <p class="hint" id="set-mode-note"></p>
+        <p class="hint" id="set-open-sheet-wrap" hidden><a id="set-open-sheet" href="#" target="_blank" rel="noopener">Open the sheet in Google Sheets</a></p>
         <div class="settings-row" id="set-sheet-row">
           <div><label class="settings-row-lbl" for="set-script-url">Apps Script URL</label><div class="settings-row-sub" id="set-sheet-sub">Your web app endpoint</div></div>
           <input class="settings-input" id="set-script-url" type="url" placeholder="https://script.google.com/..." autocomplete="off">

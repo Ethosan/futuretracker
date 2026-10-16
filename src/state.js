@@ -1,13 +1,16 @@
 /* Shared app state. Config and copy traders live in localStorage
    (same keys as before, so existing devices keep their setup).
 
-   Three ways to keep trades:
+   Four ways to keep trades:
+   - "google": a sheet the app made in the user's Drive (cfg.mode === "google")
    - "sheet": the user's own Google Sheet through Apps Script (cfg.scriptUrl)
    - "local": this browser's localStorage, no account (cfg.mode === "local")
    - demo:    a built-in sample journal in memory (?demo). Nothing is read from
               or written to localStorage, and the sheet client is never made. */
 import { createSheetClient } from "./lib/sheets.js";
 import { createLocalStore, createMemoryStore } from "./lib/stores.js";
+import { createGoogleStore } from "./lib/google.js";
+import { getToken, tokenExpired } from "./google-auth.js";
 import { generateDemoRows, DEMO_CONFIG, DEMO_COPY_TRADERS, DEMO_YEAR } from "./lib/demo.js";
 
 const CFG_KEY = "tj_config";
@@ -45,6 +48,7 @@ let client = null;
 
 function makeStore(cfg) {
   if (cfg?.mode === "local") return createLocalStore();
+  if (cfg?.mode === "google") return createGoogleStore({ spreadsheetId: cfg.spreadsheetId, getToken, onExpired: tokenExpired });
   if (cfg?.scriptUrl) return createSheetClient(cfg.scriptUrl);
   return null;
 }
@@ -66,7 +70,11 @@ export function initState({ demo = false } = {}) {
 /* The active trade store (sheet, device or demo). Made on first use. */
 export const store = () => client || (client = makeStore(S.cfg));
 
-export const storageMode = () => (S.demo ? "demo" : S.cfg?.mode === "local" ? "local" : S.cfg?.scriptUrl ? "sheet" : null);
+export function storageMode() {
+  if (S.demo) return "demo";
+  if (S.cfg?.mode === "local" || S.cfg?.mode === "google") return S.cfg.mode;
+  return S.cfg?.scriptUrl ? "sheet" : null;
+}
 
 export function saveConfig(cfg) {
   S.cfg = cfg;

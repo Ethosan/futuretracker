@@ -150,6 +150,7 @@ describe("demo mode in the app state", () => {
     sheetCalls.calls = [];
     storage = fakeStorage({ tj_config: realConfig, tj_cts: '["Real trader"]' });
     vi.stubGlobal("localStorage", storage);
+    vi.stubGlobal("fetch", vi.fn(() => { throw new Error("no network in demo"); }));
   });
 
   it("never calls the Sheets transport or touches the real config", async () => {
@@ -175,6 +176,7 @@ describe("demo mode in the app state", () => {
 
     expect(sheetCalls.create).toBe(0);
     expect(sheetCalls.calls).toEqual([]);
+    expect(fetch).not.toHaveBeenCalled();
     expect(storage.setItem).not.toHaveBeenCalled();
     expect(storage.removeItem).not.toHaveBeenCalled();
     expect(storage.dump()).toEqual({ tj_config: realConfig, tj_cts: '["Real trader"]' });

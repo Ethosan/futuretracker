@@ -28,13 +28,31 @@ I built it to find out why my account kept going down. It showed me: the trades 
 
 | Option | How | Good for |
 |---|---|---|
-| Google Sheet | Your own Apps Script web app (below) | Every device, data in a sheet you can open |
+| Sign in with Google | The app makes a "Trade Journal" sheet in your Drive | Most people: no setup, every device |
+| Your own Apps Script | Your own Apps Script web app (below) | The older way, still works |
 | This device | Browser localStorage, no account | Trying it properly, or one phone only |
 | Demo | Memory, gone on reload | Looking around |
 
 Device-only trades stay in that one browser on that one web address. Use **Export CSV** in the Trade Log to back them up. To move to a sheet: export, connect the sheet in **Settings**, then **Import CSV**. Import skips trades whose id is already there.
 
-## Google Sheet setup (once per device)
+## Sign in with Google (setup for whoever hosts the app)
+
+Users just press **Sign in with Google**. The app finds its "Trade Journal" sheet in their Drive, or makes one, and talks to it with the Sheets API from the browser. It asks only for `drive.file`, so it sees files it made and nothing else. The token stays in the tab for about an hour; after that a **Sign in** bar appears. Signing in on another device finds the same sheet.
+
+The option is hidden until the build has a Google OAuth client ID. To set one up (once):
+
+1. [Google Cloud console](https://console.cloud.google.com): create a project, e.g. "Trade Journal".
+2. **APIs & Services → Library:** enable **Google Sheets API** and **Google Drive API**.
+3. **Google Auth Platform → Branding:** app name "Trade Journal", your email, home page `https://futuretracker.netlify.app`, privacy policy `https://futuretracker.netlify.app/privacy.html`. Authorized domains: `futuretracker.netlify.app`, and `ethantam.dev` once the custom domain is live.
+4. **Audience:** External. It starts in **Testing**, where only the test users you add (up to 100) can sign in. Add your own Google account. Press **Publish app** when you want anyone to be able to use it.
+5. **Data access:** add the scope `https://www.googleapis.com/auth/drive.file`. It is a non-sensitive scope, so publishing shouldn't need Google's security review.
+6. **Clients → Create client → Web application.** Authorized JavaScript origins: `https://futuretracker.netlify.app`, `https://futuretracker.ethantam.dev`, `http://localhost:5173`. No redirect URIs.
+7. Copy the client ID (`….apps.googleusercontent.com`). It is not a secret.
+8. **Netlify → Site configuration → Environment variables:** add `VITE_GOOGLE_CLIENT_ID` with that value, then **Deploys → Trigger deploy**. Locally, put the same line in `.env.local`.
+
+If sign-in does nothing, the browser probably blocked the pop-up: allow pop-ups for the site.
+
+## Apps Script setup (once per device)
 
 1. Create a Google Sheet ([sheets.new](https://sheets.new)).
 2. **Extensions → Apps Script**, replace the code with [`apps-script/Code.gs`](apps-script/Code.gs), save.
@@ -59,10 +77,12 @@ src/
   main.js               boot, navigation, account filter, data loading
   config.js             sheet columns, instruments and point values, tag lists
   state.js              app state, config and copy traders in localStorage
+  google-auth.js        Google sign-in (Identity Services token pop-up)
   lib/                  pure logic, unit tested
     calc.js             trade maths, R multiple, legs encoding
     stats.js            summaries, breakdowns, periods, heatmap data
     sheets.js           JSONP client for the Apps Script
+    google.js           Sheets and Drive API client for "Sign in with Google"
     stores.js           device (localStorage) and in-memory stores, same shape as the sheet client
     rows.js             stored row to trade object
     csv.js              CSV export and import
@@ -120,5 +140,5 @@ Not set up yet. The app needs no code changes for it: every path is absolute fro
 2. **Netlify:** Domain management → Add a domain → `futuretracker.ethantam.dev`.
 3. **Cloudflare DNS** for ethantam.dev: add `CNAME futuretracker → futuretracker.netlify.app`, **DNS only** (grey cloud), so Netlify can issue the certificate.
 4. In Netlify, wait for HTTPS, then make it the primary domain. Netlify then redirects `futuretracker.netlify.app` to it, `?demo` included.
-5. Open the new address on each device: paste the Apps Script URL again, or pick "Use it on this device" and **Import CSV**.
+5. Open the new address on each device: sign in with Google again (same sheet), paste the Apps Script URL again, or pick "Use it on this device" and **Import CSV**. The Google client already lists `https://futuretracker.ethantam.dev` as an origin if you followed the steps above.
 6. Update the links on ethantam.dev (the Trade Journal card and `journal` in the terminal in `main.js`) to `https://futuretracker.ethantam.dev/?demo`, and the Live link at the top of this README.

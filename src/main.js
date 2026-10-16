@@ -17,6 +17,7 @@ import { renderCharts } from "./ui/charts-view.js";
 import { initReview, renderReview } from "./ui/review-view.js";
 import { initHeatmap, renderHeatmap } from "./ui/heatmap-view.js";
 import { initSettings, logoSub } from "./ui/settings.js";
+import { getToken } from "./google-auth.js";
 
 /* ?demo loads the sample journal in memory. Decide before anything reads config. */
 initState({ demo: new URLSearchParams(location.search).has("demo") });
@@ -29,6 +30,8 @@ const RENDER = {
   heatmap: renderHeatmap,
 };
 let current = "log-trade";
+/* Google Sheet modes (Apps Script or sign-in) show "Synced"; device and demo say where they live. */
+const remote = () => ["sheet", "google"].includes(storageMode());
 
 /* ------------------------------------------------------------------ data */
 let loading = null;
@@ -40,10 +43,10 @@ async function loadTrades(force = false) {
     try {
       S.trades = await store().loadTrades();
       S.loadedAt = Date.now();
-      setSyncStatus("ok", storageMode() === "sheet" ? "Synced · " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : syncLabel());
-    } catch {
-      setSyncStatus("err", "Sync failed");
-      toast("Couldn't load trades. Check your connection.", true);
+      setSyncStatus("ok", remote() ? "Synced · " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : syncLabel());
+    } catch (e) {
+      setSyncStatus("err", e.name === "NeedsSignIn" ? "Sign in needed" : "Sync failed");
+      if (e.name !== "NeedsSignIn") toast("Couldn't load trades. Check your connection.", true);
     } finally {
       $("log-loading").hidden = true;
       loading = null;
@@ -91,11 +94,12 @@ function showApp() {
   $("demo-banner").hidden = !S.demo;
   $("logo-sub").textContent = logoSub();
   $("f-date").value = localISODate();
-  setSyncStatus("loading", storageMode() === "sheet" ? "Connecting..." : "Loading...");
+  setSyncStatus("loading", remote() ? "Connecting..." : "Loading...");
   store().ensureHeaders()
-    .then(() => { setSyncStatus("ok", storageMode() === "sheet" ? "Connected" : syncLabel()); return loadTrades(true); })
+    .then(() => { setSyncStatus("ok", remote() ? "Connected" : syncLabel()); return loadTrades(true); })
     .then(renderCurrent)
-    .catch(() => {
+    .catch(e => {
+      if (e.name === "NeedsSignIn") { setSyncStatus("err", "Sign in needed"); return; }
       setSyncStatus("err", "Connection failed");
       toast("Couldn't connect. Check your Apps Script URL and deployment.", true);
     });
@@ -120,12 +124,26 @@ initSettings({
   connected: showApp,
   reconnect: changed => {
     if (changed === false) { renderCurrent(); return; }
-    setSyncStatus("ok", storageMode() === "sheet" ? "Connected" : syncLabel());
+    setSyncStatus("ok", remote() ? "Connected" : syncLabel());
     loadTrades(true).then(renderCurrent);
   },
 });
 setAccount("all");
 $("exit-demo").addEventListener("click", exitDemo);
+
+/* Google tokens last an hour. When one runs out, a tap here gets a new one. */
+addEventListener("tj:needs-signin", () => { $("auth-banner").hidden = false; });
+$("reauth-btn").addEventListener("click", async () => {
+  try {
+    await getToken({ interactive: true });
+    $("auth-banner").hidden = true;
+    await store().ensureHeaders();
+    await loadTrades(true);
+    renderCurrent();
+  } catch {
+    toast("Google sign-in didn't finish. Allow pop-ups for this site and try again.", true);
+  }
+});
 
 if (storageMode()) showApp();
 else $("setup-screen").hidden = false;
