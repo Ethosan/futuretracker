@@ -2,6 +2,8 @@
 
 A personal futures trading journal for **MES, MNQ, MGC and XAUUSD**. Trades are saved to **your own Google Sheet** through a small Apps Script, or just to the browser you're using. Either way you keep the data and nothing runs on someone else's server.
 
+> **History:** First built in March 2026 and deployed on Netlify. Moved to GitHub in October 2026, so the commit history starts there.
+
 I built it to find out why my account kept going down. It showed me: the trades where I broke a rule lost more than the clean ones made.
 
 **Live:** [futuretracker.netlify.app](https://futuretracker.netlify.app). Add [`?demo`](https://futuretracker.netlify.app/?demo) to try it with sample data.
