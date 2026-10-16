@@ -1,0 +1,124 @@
+/* Trade detail panel */
+.review-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 500; opacity: 0; pointer-events: none; transition: opacity 0.2s }
+.review-overlay.open { opacity: 1; pointer-events: auto }
+.review-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; width: 780px; max-width: 100vw;
+  background: var(--surface); border-left: 1px solid var(--border2); z-index: 501;
+  display: flex; flex-direction: column; transform: translateX(100%); visibility: hidden;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.25s;
+}
+.review-panel.open { transform: none; visibility: visible }
+.review-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 12px }
+.review-header-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: 1; min-width: 0 }
+.review-sym { font-family: var(--display); font-size: 18px; font-weight: 700 }
+.review-actions { display: flex; gap: 8px; flex-shrink: 0 }
+.review-btn { border: 1px solid var(--border2); border-radius: 5px; color: var(--muted); font-size: var(--fs-xs); padding: 6px 12px; white-space: nowrap }
+.review-btn:hover { color: var(--text); border-color: var(--muted) }
+.review-btn.edit { color: var(--accent); border-color: rgba(200, 245, 106, 0.35) }
+.review-body { flex: 1; overflow-y: auto; padding: 22px 24px }
+.shot-btn { display: block; width: 100%; padding: 0; margin-bottom: 18px; cursor: zoom-in }
+.review-screenshot { width: 100%; border-radius: 7px; border: 1px solid var(--border); display: block; max-height: 320px; object-fit: contain; background: var(--surface2) }
+.shot-btn:hover .review-screenshot { border-color: var(--accent) }
+.review-pnl-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px }
+.review-pnl-num { font-family: var(--display); font-size: 30px; font-weight: 700 }
+.review-pnl-side { text-align: right }
+.review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px }
+.review-stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 9px 12px }
+.review-stat-lbl, .review-lbl { font-size: var(--fs-xs); color: var(--muted); letter-spacing: var(--track); text-transform: uppercase; margin-bottom: 3px }
+.review-lbl { margin-bottom: 6px }
+.review-stat-val { font-size: var(--fs-sm); color: var(--text); font-weight: 500; overflow-wrap: anywhere }
+.review-sec { font-size: var(--fs-xs); font-weight: 400; letter-spacing: var(--track); text-transform: uppercase; color: var(--muted); margin: 16px 0 10px; display: flex; align-items: center; gap: 8px }
+.review-sec::after { content: ""; flex: 1; height: 1px; background: var(--border) }
+.review-block { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 11px 13px; font-size: var(--fs-xs); line-height: 1.8; color: var(--text); margin-bottom: 10px; white-space: pre-wrap }
+.legs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px }
+.legs-head { font-size: var(--fs-xs); letter-spacing: var(--track); text-transform: uppercase; margin-bottom: 6px }
+.leg-line { font-size: var(--fs-xs); padding: 5px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between }
+.day-list { display: flex; flex-direction: column; gap: 8px }
+.day-trade {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left;
+  padding: 12px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); font-size: var(--fs-xs);
+}
+.day-trade:hover { border-color: var(--accent) }
+
+.fullscreen-img { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.92); z-index: 900; display: none; align-items: center; justify-content: center; cursor: zoom-out }
+.fullscreen-img.open { display: flex }
+.fullscreen-img img { max-width: 95vw; max-height: 95vh; border-radius: 6px }
+
+/* Settings */
+.settings-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); z-index: 600; display: none; align-items: center; justify-content: center; padding: 24px }
+.settings-overlay.open { display: flex }
+.settings-modal { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; width: 100%; max-width: 540px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden }
+.settings-modal-body { overflow-y: auto; padding: 24px 28px; flex: 1 }
+.settings-modal-footer { padding: 16px 28px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-shrink: 0 }
+.settings-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px }
+.settings-title { font-family: var(--display); font-size: 17px; font-weight: 600 }
+.settings-close { border: 1px solid var(--border2); border-radius: 4px; color: var(--muted); font-size: var(--fs-xs); padding: 5px 10px }
+.settings-close:hover { color: var(--text); border-color: var(--muted) }
+.settings-section { margin-bottom: 22px }
+.settings-section.last { margin-bottom: 0 }
+.settings-section-lbl { font-size: var(--fs-xs); font-weight: 400; letter-spacing: var(--track); text-transform: uppercase; color: var(--muted); margin-bottom: 10px; display: flex; align-items: center; gap: 8px }
+.settings-section-lbl::after { content: ""; flex: 1; height: 1px; background: var(--border) }
+.settings-section .hint { margin-bottom: 10px }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 16px }
+.settings-row:last-child { border-bottom: none }
+.settings-row-lbl { font-size: var(--fs-xs); color: var(--text); display: block }
+.settings-row-sub { font-size: var(--fs-xs); color: var(--muted); margin-top: 2px }
+.settings-input { background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; font-size: var(--fs-xs); padding: 7px 10px; outline: none; width: 230px; min-width: 0 }
+.settings-input:focus { border-color: var(--accent) }
+.settings-input.grow { flex: 1; width: auto }
+.settings-danger { color: var(--red); border: 1px solid rgba(255, 107, 107, 0.35); font-size: var(--fs-xs); padding: 7px 14px; border-radius: 5px }
+.settings-danger:hover { background: var(--red-dim) }
+.ct-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: var(--fs-xs) }
+.inline-add { display: flex; gap: 8px; margin-top: 10px }
+
+/* First-run setup */
+#setup-screen { position: fixed; inset: 0; background: var(--bg); z-index: 900; overflow-y: auto; padding: 48px 24px }
+.setup-box { width: 100%; max-width: 680px; margin: 0 auto; padding-bottom: 60px }
+.setup-logo { font-family: var(--display); font-weight: 700; font-size: var(--fs-sm); letter-spacing: var(--track); text-transform: uppercase; color: var(--accent); margin-bottom: 28px }
+.setup-title { font-family: var(--display); font-size: 22px; font-weight: 600; margin-bottom: 8px }
+.setup-sub { font-size: var(--fs-xs); color: var(--muted); line-height: 1.8; margin-bottom: 28px }
+.step { display: flex; gap: 16px; margin-bottom: 22px }
+.step-num { width: 26px; height: 26px; border: 1px solid var(--border2); border-radius: 50%; display: grid; place-items: center; font-size: var(--fs-xs); color: var(--muted); flex-shrink: 0 }
+.step-num.done { background: var(--accent); color: #000; border-color: var(--accent) }
+.step-content { flex: 1; min-width: 0 }
+.step-title { display: block; font-size: var(--fs-sm); font-weight: 500; color: var(--text); margin-bottom: 5px }
+.step-desc { font-size: var(--fs-xs); color: var(--muted); line-height: 1.8 }
+.step-desc + .step-desc { margin-top: 8px }
+.step-desc b { color: var(--text); font-weight: 500 }
+.step-list { padding-left: 18px }
+.code-wrap { position: relative; margin-top: 10px }
+.code-block { background: var(--surface2); border: 1px solid var(--border2); border-radius: 6px; padding: 14px; font-size: var(--fs-xs); line-height: 1.7; color: #b5d87e; white-space: pre; overflow-x: auto; max-height: 340px }
+.copy-code-btn { position: absolute; top: 8px; right: 8px; background: var(--surface); border: 1px solid var(--border2); border-radius: 4px; color: var(--muted); font-size: var(--fs-xs); padding: 3px 10px }
+.copy-code-btn:hover { color: var(--text) }
+.step-input { margin-top: 8px }
+.step-input input { background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; font-size: var(--fs-xs); padding: 9px 10px; outline: none; width: 100% }
+.step-input input:focus { border-color: var(--accent) }
+.setup-error { font-size: var(--fs-xs); color: var(--red); margin-top: 6px }
+.setup-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 24px }
+.setup-actions .setup-error { margin: 0 }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; background: var(--surface); border: 1px solid var(--accent); border-radius: 6px;
+  padding: 10px 18px; font-size: var(--fs-xs); color: var(--accent); transform: translateY(60px); opacity: 0; transition: all 0.25s; z-index: 1000; max-width: calc(100vw - 32px);
+  pointer-events: none; /* never block taps on whatever sits underneath */
+}
+.toast.err { border-color: var(--red); color: var(--red) }
+.toast.show { transform: none; opacity: 1 }
+
+@media (max-width: 768px) {
+  .review-panel { width: 100vw; border-left: none }
+  .review-body { padding: 16px }
+  .review-header { padding: 14px 16px; padding-top: max(14px, env(safe-area-inset-top)) }
+  .review-pnl-card { flex-direction: column; align-items: flex-start; gap: 8px }
+  .review-pnl-side { text-align: left }
+  .review-pnl-num { font-size: 24px }
+  .settings-overlay { padding: 0; align-items: flex-end }
+  .settings-modal { max-width: 100%; border-radius: 12px 12px 0 0; max-height: 92dvh }
+  .settings-modal-body { padding: 20px 18px }
+  .settings-modal-footer { padding: 14px 18px; padding-bottom: max(14px, env(safe-area-inset-bottom)) }
+  .settings-row { flex-direction: column; align-items: stretch; gap: 8px }
+  .settings-input { width: 100%; font-size: 16px }
+  #setup-screen { padding: 24px 16px }
+  .toast { left: 16px; right: 16px; bottom: 80px }
+}

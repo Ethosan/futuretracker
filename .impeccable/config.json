@@ -1,0 +1,15 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "nested-cards",
+        "value": "#img-drop-zone",
+        "files": ["index.html"],
+        "createdAt": "2026-10-16T05:20:00.000Z",
+        "reason": "Dashed screenshot drop target inside the Result card; it is an input affordance, not a card"
+      }
+    ]
+  }
+}

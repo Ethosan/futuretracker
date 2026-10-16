@@ -1,0 +1,121 @@
+/* Trade Log */
+.today-bar { display: flex; align-items: center; gap: 10px; font-size: var(--fs-xs); margin-left: auto }
+.filter-bar { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap }
+.filter-bar input, .filter-bar select {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 5px; color: var(--text);
+  font-size: var(--fs-xs); padding: 7px 10px; outline: none; min-width: 0;
+}
+.filter-bar input:focus, .filter-bar select:focus { border-color: var(--accent) }
+.filter-bar input { flex: 1; min-width: 180px }
+.table-scroll { overflow-x: auto }
+.log-table { width: 100%; border-collapse: collapse; font-size: var(--fs-xs) }
+.log-table th { text-align: left; font-size: var(--fs-xs); letter-spacing: var(--track); text-transform: uppercase; color: var(--muted); padding: 7px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; font-weight: 400 }
+.log-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle }
+.log-table tr.trade-row { cursor: pointer }
+.log-table tr.trade-row:hover td, .log-table tr.trade-row:focus-visible td { background: var(--surface) }
+.log-table tr.trade-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px }
+.log-table tr.day-row td { background: var(--surface2); padding: 6px 12px; font-size: var(--fs-xs) }
+.log-table tr.day-row span + span { margin-left: 12px }
+.col-setup { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.sym { font-family: var(--display); font-size: var(--fs-sm); font-weight: 600 }
+.ct-name { color: var(--blue); font-size: var(--fs-xs) }
+.chip { font-size: var(--fs-xs); padding: 1px 7px; border-radius: 3px; display: inline-block; background: var(--surface2); color: var(--muted); border: 1px solid var(--border) }
+.chip-strat { background: var(--accent-dim); color: var(--accent); border-color: rgba(200, 245, 106, 0.25) }
+.chip-mistake { background: var(--red-dim); color: var(--red); border-color: rgba(255, 107, 107, 0.3) }
+.chip-live { background: var(--accent-dim); color: var(--accent); border-color: rgba(200, 245, 106, 0.25) }
+.chip-prop { background: var(--blue-dim); color: var(--blue); border-color: rgba(126, 200, 247, 0.25) }
+.chip-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px }
+.out-tag { font-weight: 500; font-size: var(--fs-xs) }
+.out-tag.big { font-size: var(--fs-sm) }
+.out-w { color: var(--accent) }
+.out-l { color: var(--red) }
+.out-be { color: var(--amber) }
+.empty-state { text-align: center; padding: 48px 16px; color: var(--muted); font-size: var(--fs-xs); letter-spacing: 0.04em }
+
+/* Stats */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 12px }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px }
+.stat-card.note-card { display: flex; align-items: center }
+.stat-val { font-family: var(--display); font-size: 24px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 5px }
+.stat-lbl { font-size: var(--fs-xs); color: var(--muted); letter-spacing: var(--track); text-transform: uppercase }
+.breakdown-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 14px; margin-top: 14px }
+.strat-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); min-width: 0; font-size: var(--fs-xs) }
+.strat-row:last-child { border-bottom: none }
+.strat-name { flex: 1; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 80px; max-width: 170px }
+.bar-wrap { flex: 2; background: var(--surface2); border-radius: 2px; height: 4px; overflow: hidden; min-width: 40px }
+.bar-fill { height: 4px; border-radius: 2px; transition: width 0.4s ease; background: var(--accent) }
+.bar-fill.neg { background: var(--red) }
+.col-wr { width: 42px; text-align: right }
+.col-n { width: 70px; text-align: right }
+.col-pnl { min-width: 76px; text-align: right }
+.mistake-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: var(--fs-xs) }
+.mistake-row:last-child { border-bottom: none }
+.mistake-count { font-weight: 500; color: var(--red); font-size: var(--fs-sm) }
+.mini-grid { display: grid; gap: 10px }
+.mini-grid.three { grid-template-columns: repeat(3, 1fr) }
+.mini-grid.five, #conf-breakdown { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)) }
+.mini-card { text-align: center; padding: 12px 8px; background: var(--surface2); border-radius: 6px; border: 1px solid var(--border) }
+.mini-val { font-family: var(--display); font-size: 20px; font-weight: 700 }
+.mini-lbl { font-size: var(--fs-xs); color: var(--muted); letter-spacing: var(--track); text-transform: uppercase; margin-top: 2px }
+.sub-label { font-size: var(--fs-xs); letter-spacing: var(--track); text-transform: uppercase; margin-bottom: 10px; font-weight: 500 }
+.trade-line { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: var(--fs-xs) }
+
+/* Charts */
+.chart-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px }
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin: 0 }
+.chart-card.full { grid-column: 1 / -1 }
+.chart-title { font-size: var(--fs-xs); letter-spacing: var(--track); text-transform: uppercase; color: var(--muted); margin-bottom: 14px }
+.chart-wrap { position: relative; height: 220px }
+.chart-wrap.tall { height: 270px }
+
+/* Review */
+.select-sm { background: var(--surface); border: 1px solid var(--border); border-radius: 5px; font-size: var(--fs-xs); padding: 6px 10px; outline: none }
+.period-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 14px }
+.period-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 16px }
+.period-title { font-family: var(--display); font-size: 15px; font-weight: 600 }
+.period-pnl { font-family: var(--display); font-size: 24px; font-weight: 700 }
+.period-card .mini-grid { grid-template-columns: repeat(5, 1fr); margin-bottom: 12px }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px }
+.note-box { padding: 10px 12px; background: var(--surface2); border-radius: 6px; border: 1px solid var(--border); font-size: var(--fs-xs); margin-top: 10px }
+.two-col .note-box { margin-top: 0 }
+.note-box .mini-lbl { text-align: left; margin: 0 0 4px }
+
+/* Heatmap */
+.hm-legend { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; font-size: var(--fs-xs); color: var(--muted) }
+.hm-legend .sw { width: 12px; height: 12px; border-radius: 2px; display: inline-block; margin-left: 8px }
+.hm-legend .sw:first-child { margin-left: 0 }
+.sw.pos { background: rgba(200, 245, 106, 0.8) }
+.sw.neg { background: rgba(255, 107, 107, 0.8) }
+.sw.be { background: rgba(255, 193, 102, 0.5) }
+.sw.none { background: var(--surface2); border: 1px solid var(--border) }
+.hm-grid { display: flex; gap: 14px; flex-wrap: wrap }
+.hm-month { min-width: 128px }
+.hm-month-name { font-size: var(--fs-xs); color: var(--muted); letter-spacing: var(--track); text-transform: uppercase; margin-bottom: 6px }
+.hm-days { display: grid; grid-template-columns: repeat(7, 16px); gap: 2px }
+.hm-dow { font-size: 11px; color: var(--muted2); text-align: center; line-height: 16px }
+.hm-cell { width: 16px; height: 16px; border-radius: 3px; padding: 0 }
+.hm-cell.none { background: var(--surface2) }
+.hm-cell.empty { background: none }
+button.hm-cell:hover, button.hm-cell:focus-visible { outline: 2px solid var(--text); outline-offset: 1px }
+.month-table { width: 100%; border-collapse: collapse; font-size: var(--fs-xs) }
+.month-table th { text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--border); color: var(--muted); font-weight: 400; letter-spacing: var(--track); text-transform: uppercase }
+.month-table th:first-child, .month-table td:first-child { text-align: left }
+.month-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: right }
+.month-table .total-row td { background: var(--surface2); border-bottom: 0; padding: 9px 10px }
+
+@media (max-width: 768px) {
+  .today-bar { margin-left: 0 }
+  .filter-bar { display: grid; grid-template-columns: 1fr 1fr }
+  .filter-bar input { grid-column: 1 / -1; min-width: 0; font-size: 16px }
+  .log-table .col-acct, .log-table .col-r, .log-table .col-session { display: none }
+  .log-table td, .log-table th { padding: 8px 8px }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px }
+  .stat-val { font-size: 20px }
+  .breakdown-grid { grid-template-columns: 1fr }
+  .chart-grid { grid-template-columns: 1fr }
+  .chart-card.full { grid-column: auto }
+  .chart-wrap { height: 210px }
+  .period-card .mini-grid { grid-template-columns: repeat(3, 1fr) }
+  .two-col { grid-template-columns: 1fr }
+  .strat-row .col-n { display: none }
+}

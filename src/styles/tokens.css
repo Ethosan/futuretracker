@@ -1,0 +1,29 @@
+:root {
+  --bg: #141414;
+  --surface: #1c1c1c;
+  --surface2: #242424;
+  --border: #333;
+  --border2: #454545;
+  --text: #f4f1ec;
+  /* Muted text, raised from #888 / #555 so both clear WCAG AA (4.5:1) on every surface. */
+  --muted: #a3a3a3;
+  --muted2: #8c8c8c;
+  --accent: #c8f56a;
+  --accent-dim: rgba(200, 245, 106, 0.13);
+  --accent-dim2: rgba(200, 245, 106, 0.07);
+  --red: #ff7a7a;
+  --red-dim: rgba(255, 107, 107, 0.13);
+  --amber: #ffc166;
+  --amber-dim: rgba(255, 193, 102, 0.13);
+  --blue: #7ec8f7;
+  --blue-dim: rgba(126, 200, 247, 0.13);
+
+  --mono: "DM Mono", ui-monospace, monospace;
+  --display: "Syne", "DM Mono", sans-serif;
+  /* Type ramp. Nothing functional below 12px. */
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 14px;
+  --track: 0.06em;
+  --radius: 8px;
+}

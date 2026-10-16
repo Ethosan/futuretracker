@@ -1,0 +1,25 @@
+{
+  "name": "futuretracker",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Trade Journal: a personal futures trading journal that syncs to your own Google Sheet.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "audit:design": "impeccable detect index.html src"
+  },
+  "dependencies": {
+    "chart.js": "^4.5.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0",
+    "vite": "^7.2.4",
+    "vitest": "^5.0.5"
+  }
+}
