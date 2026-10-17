@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · Trade Journal</title>
+<meta name="color-scheme" content="dark">
+<style>
+  body { margin: 0; background: #141414; color: #f4f1ec; font: 15px/1.7 ui-monospace, "DM Mono", monospace }
+  main { max-width: 640px; margin: 0 auto; padding: 48px 16px }
+  h1 { font-size: 22px; margin: 0 0 20px }
+  h2 { font-size: 15px; margin: 28px 0 6px }
+  p, li { color: #c4c4c4 }
+  a { color: #c8f56a }
+</style>
+</head>
+<body>
+<main>
+  <h1>Trade Journal: privacy</h1>
+  <p>Trade Journal is a personal project by Ethan Tam. It has no server and no database of its own. It doesn't use analytics or ads.</p>
+
+  <h2>Where your trades go</h2>
+  <ul>
+    <li><b>Sign in with Google:</b> trades are saved to a private spreadsheet called "Trade Journal" in your own Google Drive, and screenshots to a private "Trade Journal screenshots" folder next to it. Nobody else can open them unless you share them. The app asks only for the <code>drive.file</code> permission, so it can see and change files it created and nothing else in your Drive.</li>
+    <li><b>Your own Apps Script:</b> trades go to your sheet through a script you deploy yourself. Its web app URL works like a password: anyone who has it can read and change your trades.</li>
+    <li><b>This device:</b> trades stay in your browser's local storage. Anyone who uses that browser can see them. Settings has a button to delete them.</li>
+    <li><b>Demo:</b> sample data in memory. Nothing is saved.</li>
+  </ul>
+
+  <h2>Google data</h2>
+  <p>Your Google access token is kept in this browser tab only and expires after about an hour. Data from Google is shown to you in the app and is not sent anywhere else, sold, or shared. The app's use of information received from Google APIs follows the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+  <p>To remove access, open Settings, then Reset, or go to <a href="https://myaccount.google.com/permissions">your Google account permissions</a>. Your sheet stays in your Drive until you delete it.</p>
+
+  <h2>Screenshots</h2>
+  <p>With Sign in with Google, screenshots stay private in your Drive. On this device, they stay in your browser's own storage. Only the older Apps Script setup can use imgbb, if you add a key, and anyone with an imgbb link can open it.</p>
+
+  <h2>Signing out</h2>
+  <p>Settings, then Sign out, revokes the app's Google access and removes this app's settings from the browser.</p>
+
+  <h2>Contact</h2>
+  <p><a href="mailto:eatentam@gmail.com">eatentam@gmail.com</a></p>
+  <p><a href="/terms.html">Terms</a> · <a href="/">Back to the journal</a></p>
+</main>
+</body>
+</html>

@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trade Journal</title>
+<meta name="description" content="A personal futures trading journal for MES, MNQ, MGC and XAUUSD. Saves to your own Google Sheet or this device. Try the demo.">
+<meta name="theme-color" content="#141414">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Journal">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@500;600;700&display=swap" rel="stylesheet">
+  <script type="module" crossorigin src="/assets/index-C3AqVSI1.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-wobGQvGV.css">
+</head>
+<body>
+
+<!-- SETUP (first run) -->
+<div id="setup-screen" hidden>
+  <form class="setup-box" id="setup-form" novalidate>
+    <div class="setup-logo">Trade Journal</div>
+    <h1 class="setup-title">Get started</h1>
+    <p class="setup-sub">A futures trading journal for MES, MNQ, MGC and XAUUSD. Log each trade with what you felt and what you did wrong, then see where the money goes. Live and Prop accounts are tracked separately.</p>
+
+    <div class="google-start" id="google-start" hidden>
+      <button type="button" class="btn-google" id="google-btn"><svg class="g-logo" viewBox="0 0 48 48" aria-hidden="true" width="18" height="18"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span>Continue with Google</span></button>
+      <p class="google-note">Free, and no new password. Your trades go to a private sheet in your own Google Drive. The journal can only open files it made. <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a></p>
+      <p class="setup-error" id="err-google" role="alert" hidden></p>
+      <p class="or-line"><span>or</span></p>
+    </div>
+
+    <div class="paths">
+      <a class="path path-demo" href="?demo">
+        <span class="path-title">Try the demo</span>
+        <span class="path-desc">About 120 sample trades over five months. Nothing is saved.</span>
+      </a>
+      <button type="button" class="path" id="local-btn">
+        <span class="path-title">Use it on this device</span>
+        <span class="path-desc">No account. Trades stay in this browser. Export a CSV to back up.</span>
+      </button>
+      <a class="path" href="#sheet-setup" id="script-path">
+        <span class="path-title">Connect a Google Sheet</span>
+        <span class="path-desc">Trades go to your own sheet and follow you to any device. About five minutes.</span>
+      </a>
+    </div>
+
+    <details class="script-setup" id="script-details" open>
+    <summary><h2 class="setup-h2" id="sheet-setup">Connect a Google Sheet</h2></summary>
+    <p class="setup-sub">Do this once per device. The journal only talks to your sheet, through a small script you own. Keep the web app URL private: anyone who has it can read and change your trades.</p>
+
+    <div class="step">
+      <div class="step-num done" aria-hidden="true">1</div>
+      <div class="step-content">
+        <h2 class="step-title">Create a Google Sheet</h2>
+        <p class="step-desc">Go to <a href="https://sheets.new" target="_blank" rel="noopener">sheets.new</a> and name it anything (e.g. "Trade Journal"). The journal sets everything else up for you.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num done" aria-hidden="true">2</div>
+      <div class="step-content">
+        <h2 class="step-title">Add the Apps Script</h2>
+        <p class="step-desc">In the sheet: <b>Extensions</b> → <b>Apps Script</b>, delete the existing code and paste this:</p>
+        <div class="code-wrap">
+          <pre class="code-block" id="script-block"></pre>
+          <button type="button" class="copy-code-btn" id="copy-script-btn">copy</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num done" aria-hidden="true">3</div>
+      <div class="step-content">
+        <h2 class="step-title">Deploy as a Web App</h2>
+        <ol class="step-desc step-list">
+          <li>Press <b>Ctrl+S</b> to save</li>
+          <li>Click <b>Deploy</b> (top right) → <b>New deployment</b></li>
+          <li>Click the <b>gear icon</b> next to "Select type" → <b>Web app</b></li>
+          <li>Execute as: <b>Me</b></li>
+          <li>Who has access: <b>Anyone</b></li>
+          <li>Click <b>Deploy</b> → <b>Authorize access</b> → sign in → allow</li>
+          <li>Copy the <b>Web app URL</b>. It looks like <span class="accent">https://script.google.com/macros/s/ABC.../exec</span></li>
+        </ol>
+        <p class="step-desc warn">Every time you edit the script, create a <b>New deployment</b> (not "Manage deployments"), or the changes won't take effect.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num" id="sn1" aria-hidden="true">4</div>
+      <div class="step-content">
+        <label class="step-title" for="s-script-url">Paste your Web App URL</label>
+        <p class="step-desc">Saved on this device only. Everyone sets up their own sheet.</p>
+        <div class="step-input"><input id="s-script-url" type="url" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" required></div>
+        <p class="setup-error" id="err1" hidden>Enter the Apps Script Web App URL (it starts with https://script.google.com/).</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num" id="sn2" aria-hidden="true">5</div>
+      <div class="step-content">
+        <label class="step-title" for="s-imgbb-key">imgbb API key <span class="dim">(optional, for screenshot uploads)</span></label>
+        <p class="step-desc">Sign up free at <a href="https://imgbb.com" target="_blank" rel="noopener">imgbb.com</a>, then copy your key from <a href="https://api.imgbb.com" target="_blank" rel="noopener">api.imgbb.com</a>. You can add it later in <b>Settings</b>.</p>
+        <div class="step-input"><input id="s-imgbb-key" type="text" placeholder="Paste imgbb API key (optional)" autocomplete="off"></div>
+      </div>
+    </div>
+
+    <div class="setup-actions">
+      <button type="submit" class="btn btn-primary" id="setup-btn">Connect &amp; start journaling</button>
+      <p class="setup-error" id="err-main" role="alert" hidden></p>
+    </div>
+    </details>
+  </form>
+</div>
+
+<!-- APP -->
+<div class="shell" id="app" hidden>
+  <nav class="sidebar" aria-label="Main">
+    <div class="sidebar-top">
+      <div class="logo-title">Trade Journal</div>
+      <div class="logo-sub" id="logo-sub">Personal · Futures</div>
+      <div class="acct-switcher" role="group" aria-label="Account">
+        <button type="button" class="acct-btn" data-account="all" aria-pressed="true">All</button>
+        <button type="button" class="acct-btn" data-account="Live" aria-pressed="false">Live</button>
+        <button type="button" class="acct-btn" data-account="Prop" aria-pressed="false">Prop</button>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <button type="button" class="nav-item active" data-view="log-trade" aria-current="page"><span class="nav-icon" aria-hidden="true">+</span><span>Log Trade</span></button>
+      <button type="button" class="nav-item" data-view="trade-log"><span class="nav-icon" aria-hidden="true">≡</span><span>Trade Log</span></button>
+      <button type="button" class="nav-item" data-view="stats"><span class="nav-icon" aria-hidden="true">◈</span><span>Stats</span></button>
+      <button type="button" class="nav-item" data-view="charts"><span class="nav-icon" aria-hidden="true">▲</span><span>Charts</span></button>
+      <button type="button" class="nav-item" data-view="review"><span class="nav-icon" aria-hidden="true">▤</span><span>Review</span></button>
+      <button type="button" class="nav-item" data-view="heatmap"><span class="nav-icon" aria-hidden="true">◼</span><span>Heatmap</span></button>
+    </div>
+    <div class="sidebar-footer">
+      <p class="sidebar-quote">"You don't have to catch every trade, you just need to be consistent."</p>
+      <button type="button" class="nav-settings" data-open-settings><span class="nav-icon" aria-hidden="true">⚙</span><span>Settings</span></button>
+      <div class="sync-row" aria-live="polite"><span class="sync-dot" id="sync-dot" aria-hidden="true"></span><span id="sync-label">Not connected</span></div>
+    </div>
+  </nav>
+
+  <main class="main" id="main">
+    <div class="top-stack">
+      <div class="demo-banner" id="demo-banner" role="status" hidden>
+        <p><b>Demo data.</b> <span class="demo-long">Made-up trades. You can log and edit, but changes only last until you close this tab.</span><span class="demo-short">Edits stay in this tab.</span></p>
+        <button type="button" class="btn-small" id="exit-demo">Exit demo</button>
+      </div>
+      <div class="demo-banner info-banner" id="update-banner" role="status" hidden>
+        <p><b>New version ready.</b> <span>Reload to use it.</span></p>
+        <button type="button" class="btn-small" id="update-btn">Reload</button>
+      </div>
+      <div class="demo-banner info-banner" id="offline-banner" role="status" hidden>
+        <p><b>Offline.</b> <span class="demo-long">New trades and edits are kept here and sent to your sheet when you're back online.</span><span class="demo-short">Changes sync when you're back online.</span></p>
+      </div>
+      <div class="demo-banner info-banner" id="moved-banner" role="status" hidden>
+        <p><b>Moved.</b> <span id="moved-text"></span></p>
+        <button type="button" class="btn-small" id="moved-dismiss">Done</button>
+      </div>
+      <div class="demo-banner" id="auth-banner" role="status" hidden>
+        <p><b>Signed out of Google.</b> <span>Sign in to load and save your trades.</span></p>
+        <button type="button" class="btn-small" id="reauth-btn">Sign in</button>
+      </div>
+      <!-- Mobile only: account switcher and settings (the sidebar becomes a tab bar) -->
+      <div class="mobile-bar">
+        <div class="acct-switcher" role="group" aria-label="Account">
+          <button type="button" class="acct-btn" data-account="all" aria-pressed="true">All</button>
+          <button type="button" class="acct-btn" data-account="Live" aria-pressed="false">Live</button>
+          <button type="button" class="acct-btn" data-account="Prop" aria-pressed="false">Prop</button>
+        </div>
+        <button type="button" class="icon-btn" data-open-settings aria-label="Settings">⚙</button>
+      </div>
+    </div>
+
+    <!-- LOG TRADE -->
+    <section id="view-log-trade" class="view active" aria-labelledby="h-log-trade">
+      <header class="page-header">
+        <h1 class="page-title" id="h-log-trade">Log trade</h1>
+        <p class="page-sub">Futures trade documentation</p>
+        <p class="edit-banner" id="edit-mode-banner" hidden>Editing a saved trade. Press Update to save.</p>
+      </header>
+
+      <form id="trade-form" novalidate>
+        <div class="form-section">
+          <h2 class="section-label">Trade setup</h2>
+          <div class="form-card">
+            <div class="grid4 gap-b">
+              <div class="field"><label for="f-date">Date</label><input id="f-date" type="date"></div>
+              <div class="field"><label for="f-entryTime">Entry time</label><input id="f-entryTime" type="time"></div>
+              <div class="field"><label for="f-instrument">Instrument</label>
+                <select id="f-instrument" required>
+                  <option value="">Select</option>
+                  <option>MES</option><option>MNQ</option><option>MGC</option><option>XAUUSD</option>
+                </select>
+              </div>
+              <div class="field"><label for="f-account">Account</label>
+                <select id="f-account"><option value="">Select</option><option>Live</option><option>Prop</option></select>
+              </div>
+            </div>
+            <div class="grid4 gap-b">
+              <div class="field"><label for="f-dir">Direction</label>
+                <select id="f-dir"><option value="">—</option><option>Long</option><option>Short</option></select>
+              </div>
+              <div class="field"><label for="f-session">Session</label>
+                <select id="f-session"><option value="">Select</option><option>Asia</option><option>London</option><option>NY AM</option><option>NY PM</option><option>Overnight</option></select>
+              </div>
+              <div class="field"><label for="f-condition">Market conditions</label>
+                <select id="f-condition"><option value="">Select</option><option>Trending</option><option>Ranging</option><option>Choppy</option><option>News-driven</option></select>
+              </div>
+              <div class="field"><label for="f-contracts">Contracts</label><input id="f-contracts" type="number" min="1" step="1" inputmode="numeric" placeholder="1"></div>
+            </div>
+
+            <div class="legs gap-b">
+              <div class="legs-bar">
+                <span class="field-label">Entry legs <span class="dim normal">(price × contracts each)</span></span>
+                <button type="button" class="btn-small" id="add-entry-leg">+ Add leg</button>
+              </div>
+              <div id="entry-legs"></div>
+              <div class="agg" id="entry-agg" hidden></div>
+            </div>
+
+            <div class="grid3 gap-b">
+              <div class="field"><label for="f-stop">Stop loss</label><input id="f-stop" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div>
+              <div class="field"><label for="f-target">Target</label><input id="f-target" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div>
+              <div class="field"><label for="f-rr">R:R planned</label><input id="f-rr" type="text" placeholder="—" readonly></div>
+            </div>
+            <div class="grid3 gap-b">
+              <div class="field"><label for="f-ticksRisk">Points risked <span class="dim normal">(auto)</span></label><input id="f-ticksRisk" type="text" placeholder="—" readonly></div>
+              <div class="field"><label for="f-maxRisk">Max $ risk <span class="dim normal">(auto)</span></label><input id="f-maxRisk" type="text" placeholder="—" readonly></div>
+              <div class="field"><label for="f-catalyst">Catalyst</label><input id="f-catalyst" type="text" placeholder="e.g. CPI, NFP, FOMC, NY open"></div>
+            </div>
+
+            <div class="field gap-b">
+              <span class="field-label" id="strat-label">Strategy / setup <span class="dim normal">(select all that apply)</span></span>
+              <div class="tag-group" id="strat-tags" role="group" aria-labelledby="strat-label"></div>
+              <input id="f-strat-custom" type="text" placeholder="or type other strategies, separated by |" aria-label="Other strategies" class="mt-6">
+            </div>
+            <div class="field gap-b">
+              <span class="field-label" id="ct-label">Copy trader <span class="dim normal">(leave blank if it's your own trade)</span></span>
+              <div class="tag-group" id="ct-tags" role="group" aria-labelledby="ct-label"></div>
+              <p class="hint mt-6">Manage copy traders in <button type="button" class="link-btn" data-open-settings>Settings</button></p>
+            </div>
+            <div class="field gap-b">
+              <label for="f-thesis">Thesis</label>
+              <textarea id="f-thesis" placeholder="e.g. MES reclaimed VWAP after the NY open selloff. Expecting continuation to the prior session high. Stop below VWAP."></textarea>
+            </div>
+            <div class="grid2">
+              <div class="field">
+                <span class="field-label" id="conf-label">Confidence at entry (1 low · 5 high)</span>
+                <div class="conf-row" id="conf-btns" role="group" aria-labelledby="conf-label"></div>
+              </div>
+              <div class="field"><label for="f-emo">Emotional state at entry</label><input id="f-emo" type="text" placeholder="e.g. Calm, FOMO, revenge, patient..."></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2 class="section-label">Result</h2>
+          <div class="form-card">
+            <div class="legs gap-b">
+              <div class="legs-bar">
+                <span class="field-label">Exit legs <span class="dim normal">(price × contracts each)</span></span>
+                <button type="button" class="btn-small" id="add-exit-leg">+ Add leg</button>
+              </div>
+              <div id="exit-legs"></div>
+              <div class="agg" id="exit-agg" hidden></div>
+            </div>
+
+            <div class="grid3 gap-b">
+              <div class="field"><label for="f-exitTime">Exit time</label><input id="f-exitTime" type="time"></div>
+              <div class="field"><label for="f-managedStop">Managed stop <span class="dim normal">(BE/trail)</span></label><input id="f-managedStop" type="number" min="0" step="0.01" inputmode="decimal" placeholder="if moved"></div>
+              <div class="field"><label for="f-commission">Commission ($)</label><input id="f-commission" type="number" min="0" step="0.01" inputmode="decimal" placeholder="e.g. 0.50"></div>
+            </div>
+            <div class="grid4 gap-b">
+              <div class="field"><label for="f-grossPnl">Gross P&amp;L <span class="dim normal">(auto)</span></label>
+                <div class="pval"><span class="pval-sym" aria-hidden="true">$</span><input id="f-grossPnl" type="text" placeholder="—" readonly></div>
+              </div>
+              <div class="field"><label for="f-netPnl">Net P&amp;L <span class="dim normal">(auto)</span></label>
+                <div class="pval"><span class="pval-sym" aria-hidden="true">$</span><input id="f-netPnl" class="big" type="text" placeholder="—" readonly></div>
+              </div>
+              <div class="field"><label for="f-r">R multiple <span class="dim normal">(auto)</span></label><input id="f-r" type="text" placeholder="—" readonly></div>
+              <div class="field">
+                <span class="field-label" id="out-label">Outcome</span>
+                <div class="outcome-row" id="outcome-btns" role="group" aria-labelledby="out-label"></div>
+              </div>
+            </div>
+            <div class="field gap-b"><label for="f-post">What actually happened vs your thesis</label><textarea id="f-post" placeholder="e.g. Price reclaimed VWAP but stalled at the prior session high. Volume dried up and it reversed..."></textarea></div>
+            <div class="grid2 gap-b">
+              <div class="field"><label for="f-right">What you did right</label><textarea id="f-right" placeholder="e.g. Respected stop, waited for confirmation..."></textarea></div>
+              <div class="field"><label for="f-lesson">Key lesson</label><textarea id="f-lesson" placeholder="One thing to take forward from this trade..."></textarea></div>
+            </div>
+            <div class="field gap-b">
+              <span class="field-label" id="mistake-label">Mistake type</span>
+              <div class="tag-group" id="mistake-tags" role="group" aria-labelledby="mistake-label"></div>
+            </div>
+            <div class="field gap-b">
+              <span class="field-label">Screenshot</span>
+              <div class="img-drop" id="img-drop-zone" tabindex="0" role="button" aria-label="Add screenshot: click, drop or paste an image">
+                <input type="file" id="img-file-input" accept="image/*" hidden>
+                <div class="img-label" id="img-drop-label">Click, drag &amp; drop, or <kbd>Ctrl+V</kbd> to paste a screenshot</div>
+                <div class="img-label warn" id="img-uploading" hidden>Uploading<span class="spinner" aria-hidden="true"></span></div>
+                <div class="img-preview-wrap" id="img-preview-wrap" hidden>
+                  <div class="img-link" id="img-link-display"></div>
+                </div>
+              </div>
+              <input id="f-chart" type="url" placeholder="Image URL (filled in after upload, or paste one)" aria-label="Screenshot URL" class="mt-6">
+            </div>
+            <div class="field"><label for="f-notes">Additional notes</label><textarea id="f-notes" placeholder="Any extra context, observations, or follow-up thoughts..."></textarea></div>
+            <ul class="form-errors" id="form-errors" role="alert" hidden></ul>
+            <div class="btn-row">
+              <button type="submit" class="btn btn-primary" id="save-btn">Save trade</button>
+              <button type="button" class="btn btn-ghost" id="clear-btn">Clear</button>
+              <button type="button" class="btn btn-ghost danger" id="cancel-edit-btn" hidden>Cancel edit</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- TRADE LOG -->
+    <section id="view-trade-log" class="view" aria-labelledby="h-trade-log">
+      <header class="page-header">
+        <h1 class="page-title" id="h-trade-log">Trade log</h1>
+        <p class="page-sub" id="log-count">— trades</p>
+        <div class="today-bar" id="today-bar" hidden>
+          <span class="dim">Today</span>
+          <span id="today-trades">—</span>
+          <span id="today-pnl" class="num">—</span>
+          <span id="today-wr" class="dim">—</span>
+        </div>
+      </header>
+      <div class="filter-bar">
+        <input id="filter-text" type="search" placeholder="Filter instrument, strategy, trader, date..." aria-label="Filter trades">
+        <select id="filter-outcome" aria-label="Outcome"><option value="">All outcomes</option><option value="W">Win</option><option value="L">Loss</option><option value="BE">BE</option></select>
+        <select id="filter-strat" aria-label="Strategy"><option value="">All strategies</option></select>
+        <select id="filter-instrument" aria-label="Instrument"><option value="">All instruments</option></select>
+        <button type="button" class="btn btn-ghost nowrap" id="refresh-btn">↻ Refresh</button>
+        <button type="button" class="btn btn-ghost nowrap" id="export-btn">Export CSV</button>
+        <button type="button" class="btn btn-ghost nowrap" id="import-btn">Import CSV</button>
+        <input type="file" id="import-file" accept=".csv,text/csv" hidden>
+      </div>
+      <div class="table-scroll">
+        <table class="log-table">
+          <thead><tr>
+            <th>Date</th><th>Time</th><th>Instrument</th><th class="col-acct">Acct</th><th>Dir</th>
+            <th class="col-setup">Setup</th><th>Net P&amp;L</th><th class="col-r">R</th><th>Outcome</th><th class="col-session">Session</th><th>Mistake</th>
+          </tr></thead>
+          <tbody id="log-body"></tbody>
+        </table>
+      </div>
+      <p id="log-empty" class="empty-state" hidden>No trades yet.</p>
+      <p id="log-loading" class="empty-state">Loading trades<span class="spinner light" aria-hidden="true"></span></p>
+    </section>
+
+    <!-- STATS -->
+    <section id="view-stats" class="view" aria-labelledby="h-stats">
+      <header class="page-header">
+        <h1 class="page-title" id="h-stats">Stats</h1>
+        <span class="account-badge acct-badge badge-all">All accounts</span>
+        <span class="loading-note" id="stats-loading" hidden>Loading<span class="spinner light" aria-hidden="true"></span></span>
+      </header>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-val num" id="s-trades">—</div><div class="stat-lbl">Total trades</div></div>
+        <div class="stat-card"><div class="stat-val num" id="s-wr">—</div><div class="stat-lbl">Win rate</div></div>
+        <div class="stat-card"><div class="stat-val num" id="s-pnl">—</div><div class="stat-lbl">Total net P&amp;L</div></div>
+        <div class="stat-card"><div class="stat-val num" id="s-avg">—</div><div class="stat-lbl">Avg P&amp;L / trade</div></div>
+      </div>
+      <p class="empty-state" id="stats-empty" hidden>Log some trades to see your stats.</p>
+      <div id="stats-content" hidden>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-val num" id="s-avgwin">—</div><div class="stat-lbl">Avg win</div></div>
+          <div class="stat-card"><div class="stat-val num" id="s-avgloss">—</div><div class="stat-lbl">Avg loss</div></div>
+          <div class="stat-card"><div class="stat-val num" id="s-expectancy">—</div><div class="stat-lbl">Expectancy</div></div>
+          <div class="stat-card"><div class="stat-val num" id="s-profitfactor">—</div><div class="stat-lbl">Profit factor</div></div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-val num" id="s-streak">—</div><div class="stat-lbl">Current streak</div></div>
+          <div class="stat-card"><div class="stat-val num" id="s-beststreak">—</div><div class="stat-lbl">Best win streak</div></div>
+          <div class="stat-card"><div class="stat-val num" id="s-worststreak">—</div><div class="stat-lbl">Worst loss streak</div></div>
+          <div class="stat-card"><div class="stat-val num" id="s-maxdd">—</div><div class="stat-lbl">Max drawdown</div></div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-val num" id="s-avgr">—</div><div class="stat-lbl">Avg R per trade</div></div>
+          <div class="stat-card"><div class="stat-val num" id="s-totalr">—</div><div class="stat-lbl">Total R</div></div>
+          <div class="stat-card"><div class="stat-val num" id="s-payoff">—</div><div class="stat-lbl">Payoff ratio</div></div>
+          <div class="stat-card note-card"><p class="hint" id="s-r-note"></p></div>
+        </div>
+
+        <div class="breakdown-grid">
+          <div><h2 class="section-label">Copy trader leaderboard</h2><div class="form-card" id="ct-breakdown"></div></div>
+          <div><h2 class="section-label">Instruments</h2><div class="form-card" id="instrument-breakdown"></div></div>
+          <div><h2 class="section-label">Win rate by strategy</h2><div class="form-card" id="strat-breakdown"></div></div>
+          <div><h2 class="section-label">Win rate by session</h2><div class="form-card" id="session-breakdown"></div></div>
+          <div><h2 class="section-label">Win rate by weekday</h2><div class="form-card" id="weekday-breakdown"></div></div>
+          <div><h2 class="section-label">Long vs short</h2><div class="form-card" id="dir-breakdown"></div></div>
+          <div><h2 class="section-label">What mistakes cost</h2><div class="form-card" id="mistake-breakdown"></div></div>
+          <div><h2 class="section-label">Win rate by confidence</h2><div class="form-card mini-grid five" id="conf-breakdown"></div></div>
+        </div>
+
+        <div class="block">
+          <h2 class="section-label">Hold time</h2>
+          <div class="form-card">
+            <div class="mini-grid three gap-b">
+              <div class="mini-card"><div class="mini-val num" id="dur-avg">—</div><div class="mini-lbl">Avg hold</div></div>
+              <div class="mini-card"><div class="mini-val num pos" id="dur-win">—</div><div class="mini-lbl">Avg win hold</div></div>
+              <div class="mini-card"><div class="mini-val num neg" id="dur-loss">—</div><div class="mini-lbl">Avg loss hold</div></div>
+            </div>
+            <div id="dur-breakdown"></div>
+          </div>
+        </div>
+
+        <div class="block">
+          <h2 class="section-label">Best &amp; worst trades</h2>
+          <div class="form-card grid2">
+            <div><h3 class="sub-label pos">Top 3 winners</h3><div id="top-winners"></div></div>
+            <div><h3 class="sub-label neg">Top 3 losers</h3><div id="top-losers"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHARTS -->
+    <section id="view-charts" class="view" aria-labelledby="h-charts">
+      <header class="page-header">
+        <h1 class="page-title" id="h-charts">Charts</h1>
+        <span class="account-badge acct-badge badge-all">All accounts</span>
+        <span class="loading-note" id="charts-loading" hidden>Loading<span class="spinner light" aria-hidden="true"></span></span>
+      </header>
+      <div class="chart-grid" id="chart-grid">
+        <figure class="chart-card full"><figcaption class="chart-title">Cumulative P&amp;L</figcaption><div class="chart-wrap tall"><canvas id="chart-pnl" role="img" aria-label="Cumulative profit and loss over time"></canvas></div></figure>
+        <figure class="chart-card"><figcaption class="chart-title">Win rate by strategy</figcaption><div class="chart-wrap"><canvas id="chart-wr" role="img" aria-label="Win rate by strategy"></canvas></div></figure>
+        <figure class="chart-card"><figcaption class="chart-title">P&amp;L by strategy</figcaption><div class="chart-wrap"><canvas id="chart-strat-pnl" role="img" aria-label="Profit and loss by strategy"></canvas></div></figure>
+        <figure class="chart-card full"><figcaption class="chart-title">Copy traders: win rate &amp; net P&amp;L</figcaption><div class="chart-wrap"><canvas id="chart-ct" role="img" aria-label="Copy trader win rate and net profit"></canvas></div></figure>
+        <figure class="chart-card"><figcaption class="chart-title">Win rate by session</figcaption><div class="chart-wrap"><canvas id="chart-session" role="img" aria-label="Win rate by session"></canvas></div></figure>
+        <figure class="chart-card"><figcaption class="chart-title">Instruments</figcaption><div class="chart-wrap"><canvas id="chart-instrument" role="img" aria-label="Trades by instrument"></canvas></div></figure>
+        <figure class="chart-card"><figcaption class="chart-title">Long vs short</figcaption><div class="chart-wrap"><canvas id="chart-longshort" role="img" aria-label="Long versus short results"></canvas></div></figure>
+        <figure class="chart-card"><figcaption class="chart-title">By weekday</figcaption><div class="chart-wrap"><canvas id="chart-weekday" role="img" aria-label="Results by weekday"></canvas></div></figure>
+        <figure class="chart-card full"><figcaption class="chart-title">Mistake frequency</figcaption><div class="chart-wrap"><canvas id="chart-mistakes" role="img" aria-label="How often each mistake happened"></canvas></div></figure>
+      </div>
+      <p id="charts-empty" class="empty-state" hidden>Log some trades to see charts.</p>
+    </section>
+
+    <!-- REVIEW -->
+    <section id="view-review" class="view" aria-labelledby="h-review">
+      <header class="page-header">
+        <h1 class="page-title" id="h-review">Review</h1>
+        <p class="page-sub">Weekly &amp; monthly summaries</p>
+        <div class="header-tools">
+          <select id="review-period" class="select-sm" aria-label="Period">
+            <option value="week">Weekly</option>
+            <option value="month">Monthly</option>
+          </select>
+          <span class="loading-note" id="review-loading" hidden>Loading<span class="spinner light" aria-hidden="true"></span></span>
+        </div>
+      </header>
+      <div id="review-content"></div>
+      <p id="review-empty" class="empty-state" hidden>Log some trades to see your review.</p>
+    </section>
+
+    <!-- HEATMAP -->
+    <section id="view-heatmap" class="view" aria-labelledby="h-heatmap">
+      <header class="page-header">
+        <h1 class="page-title" id="h-heatmap">Heatmap</h1>
+        <p class="page-sub">Daily P&amp;L calendar. Tap a day to see its trades.</p>
+        <div class="header-tools">
+          <button type="button" class="icon-btn" id="heatmap-prev" aria-label="Previous year">‹</button>
+          <span class="year-label num" id="heatmap-year-label"></span>
+          <button type="button" class="icon-btn" id="heatmap-next" aria-label="Next year">›</button>
+        </div>
+      </header>
+      <div class="hm-legend" aria-hidden="true">
+        <span class="sw pos"></span> Profit
+        <span class="sw neg"></span> Loss
+        <span class="sw be"></span> Breakeven
+        <span class="sw none"></span> No trades
+        <span class="dim">Stronger colour = bigger day</span>
+      </div>
+      <div class="hm-grid" id="heatmap-grid"></div>
+      <div id="heatmap-monthly-summary" class="block"></div>
+      <p id="heatmap-empty" class="empty-state" hidden>Log some trades to see the heatmap.</p>
+    </section>
+  </main>
+</div>
+
+<!-- TRADE DETAIL PANEL -->
+<div class="review-overlay" id="review-overlay"></div>
+<aside class="review-panel" id="review-panel" role="dialog" aria-modal="true" aria-labelledby="review-title" aria-hidden="true">
+  <div class="review-header">
+    <div class="review-header-left" id="review-title"></div>
+    <div class="review-actions">
+      <button type="button" class="review-btn edit" id="review-edit">✎ Edit</button>
+      <button type="button" class="review-btn danger" id="review-delete">Delete</button>
+      <button type="button" class="review-btn" id="review-close">Close</button>
+    </div>
+  </div>
+  <div class="review-body" id="review-body"></div>
+</aside>
+
+<div class="fullscreen-img" id="fullscreen-img" role="dialog" aria-label="Screenshot"></div>
+
+<!-- SETTINGS -->
+<div class="settings-overlay" id="settings-overlay" aria-hidden="true">
+  <div class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="settings-modal-body" id="settings-body">
+      <div class="settings-head">
+        <h2 class="settings-title" id="settings-title">Settings</h2>
+        <button type="button" class="settings-close" id="settings-close" aria-label="Close settings">Close ×</button>
+      </div>
+
+      <section class="settings-section">
+        <h3 class="settings-section-lbl">Where trades are kept</h3>
+        <p class="hint" id="set-mode-note"></p>
+        <div class="move-box" id="move-google" hidden>
+          <p class="hint" id="move-note"></p>
+          <button type="button" class="btn-google" id="move-btn"><svg class="g-logo" viewBox="0 0 48 48" aria-hidden="true" width="18" height="18"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span>Move to Google sign-in</span></button>
+        </div>
+        <p class="hint" id="set-open-sheet-wrap" hidden><a id="set-open-sheet" href="#" target="_blank" rel="noopener">Open the sheet in Google Sheets</a></p>
+        <div class="settings-row" id="set-sheet-row">
+          <div><label class="settings-row-lbl" for="set-script-url">Apps Script URL</label><div class="settings-row-sub" id="set-sheet-sub">Your web app endpoint</div></div>
+          <input class="settings-input" id="set-script-url" type="url" placeholder="https://script.google.com/..." autocomplete="off">
+        </div>
+      </section>
+
+      <section class="settings-section" id="set-imgbb-section">
+        <h3 class="settings-section-lbl">Screenshot uploads</h3>
+        <p class="hint">Optional. Without a key, screenshots are saved privately on this device. With one, they go to imgbb, where anyone who has the link can open them.</p>
+        <div class="settings-row">
+          <div><label class="settings-row-lbl" for="set-imgbb-key">imgbb API key</label><div class="settings-row-sub"><a href="https://api.imgbb.com" target="_blank" rel="noopener">Get a free key</a></div></div>
+          <input class="settings-input" id="set-imgbb-key" type="password" placeholder="Paste API key..." autocomplete="off">
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h3 class="settings-section-lbl">Copy traders</h3>
+        <p class="hint">People you copy trade. They appear as tags on the Log Trade form.</p>
+        <div id="ct-list"></div>
+        <div class="inline-add">
+          <input class="settings-input grow" id="set-ct-new" type="text" placeholder="Add name (e.g. OBI, ATrades...)" aria-label="New copy trader">
+          <button type="button" class="btn btn-ghost" id="set-ct-add">+ Add</button>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h3 class="settings-section-lbl">App</h3>
+        <div class="settings-row" id="install-row" hidden>
+          <div><div class="settings-row-lbl">Install on this device</div><div class="settings-row-sub">Opens like an app, works offline</div></div>
+          <button type="button" class="btn btn-ghost" id="install-btn">Install</button>
+        </div>
+        <p class="hint" id="ios-install" hidden>To install on iPhone or iPad: open this page in Safari, tap Share, then Add to Home Screen.</p>
+        <p class="hint">Works offline once opened. Trades you log offline are sent when you're back online.</p>
+      </section>
+
+      <section class="settings-section">
+        <h3 class="settings-section-lbl">Display</h3>
+        <div class="settings-row">
+          <div><label class="settings-row-lbl" for="set-timezone">Timezone</label><div class="settings-row-sub">For times in the log and review</div></div>
+          <select class="settings-input" id="set-timezone"></select>
+        </div>
+      </section>
+
+      <section class="settings-section last" id="set-danger">
+        <h3 class="settings-section-lbl">Danger zone</h3>
+        <div class="settings-row">
+          <div><div class="settings-row-lbl" id="reset-lbl">Reset connection</div><div class="settings-row-sub" id="reset-sub">Clears the settings on this device. Your trades in Google Sheets are safe.</div></div>
+          <button type="button" class="settings-danger" id="reset-btn">Reset</button>
+        </div>
+        <div class="settings-row" id="wipe-row" hidden>
+          <div><div class="settings-row-lbl">Delete trades on this device</div><div class="settings-row-sub">Removes every trade saved in this browser. Export a CSV first if you want a copy.</div></div>
+          <button type="button" class="settings-danger" id="wipe-btn">Delete</button>
+        </div>
+      </section>
+    </div>
+    <div class="settings-modal-footer">
+      <button type="button" class="btn btn-primary" id="settings-save">Save settings</button>
+      <button type="button" class="btn btn-ghost" id="settings-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+</body>
+</html>
