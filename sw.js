@@ -1,5 +1,3 @@
-const PRECACHE = ["/","/assets/index-wobGQvGV.css","/assets/index-C3AqVSI1.js","/icon-192.png","/icon-512.png","/icon-maskable-512.png","/icon.svg","/manifest.webmanifest","/privacy.html","/terms.html"];
-const VERSION = "a6542140b9ec";
 /* Service worker for Trade Journal. vite.config.js builds it: PRECACHE (every
    file of this build) and VERSION are added in front of this file.
    - Install: save the whole app, so it opens offline from the first launch.

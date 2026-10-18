@@ -1,0 +1,4 @@
+# The Apps Script source is shown in the app exactly as written; keep LF endings everywhere.
+* text=auto eol=lf
+*.png binary
+*.webp binary
