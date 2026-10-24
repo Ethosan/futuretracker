@@ -1,3 +1,4 @@
+declare const __APP_VERSION__: string;
 // App start-up: connects storage, wires the screens together and handles navigation.
 import "./style.css";
 import { REFRESH_AFTER_MS } from "./constants.js";
@@ -406,3 +407,6 @@ if (storageMode()) {
 } else {
   $("setup-screen").hidden = false;
 }
+
+// Version display
+try { const _v = document.getElementById("appVersion"); if (_v) _v.textContent = "v" + __APP_VERSION__; } catch {}
