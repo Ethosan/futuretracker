@@ -1,0 +1,151 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Trade Journal · Design guide</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#f4f1ec;--body:#a3a3a3;--muted:#a3a3a3;--hair:#333;--canvas:#141414;--card:#1c1c1c;--accent:#c8f56a;--down:#ff7a7a;--code-bg:#242424;--code-ink:#f4f1ec;--pre-bg:#0f0f0f;--pre-ink:#f4f1ec;--pre-hair:#333;--head-bg:rgba(20,20,20,.88);--sans:"DM Mono",ui-monospace,monospace;--mono:"DM Mono",ui-monospace,monospace;--disp:"Syne","DM Mono",sans-serif;--r:8px;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--canvas);color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+code,.mono{font-family:var(--mono);font-size:.86em}
+code{background:var(--code-bg);border:1px solid var(--hair);border-radius:5px;padding:1px 5px;color:var(--code-ink)}
+pre{background:var(--pre-bg);color:var(--pre-ink);border:1px solid var(--pre-hair);border-radius:var(--r);padding:18px 20px;overflow:auto;font-size:12.5px;line-height:1.5}pre code{background:none;border:0;padding:0;color:inherit;font-size:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px 120px}
+header{position:sticky;top:0;z-index:5;background:var(--head-bg);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--hair)}
+header .wrap{display:flex;align-items:center;gap:14px;padding:12px 28px}
+header nav{margin-left:auto;display:flex;gap:18px;font-size:13px;font-weight:500;color:var(--muted)}header nav a{color:inherit;text-decoration:none}header nav a:hover{color:var(--accent)}
+.brandbox{flex:none;display:grid;place-items:center}.brandbox>*{display:block}
+.wm{line-height:1.2}.wm small{display:block;margin-top:3px;font:400 10px/1.2 var(--sans);letter-spacing:0;text-transform:none;color:var(--muted)}
+h1{font-family:var(--disp);font-size:44px;line-height:1.05;letter-spacing:-.04em;margin:64px 0 12px;font-weight:700}
+.lede{font-size:19px;color:var(--body);max-width:760px;margin:0 0 8px}
+h2{font-family:var(--disp);font-size:26px;letter-spacing:-.03em;margin:72px 0 6px;font-weight:700;scroll-margin-top:80px}
+h2+p{margin-top:0;color:var(--body);max-width:760px}
+h3{font-size:15px;margin:0 0 8px;font-weight:600}
+.label{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin:40px 0 8px}
+.card{background:var(--card);border:1px solid var(--hair);border-radius:var(--r);padding:22px}
+.card p{margin:0}.card p+p{margin-top:8px}
+.grid{display:grid;gap:16px}.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}
+.muted{color:var(--muted)}.small{font-size:13px}
+.sw{display:flex;gap:12px;align-items:flex-start;font-size:13px;line-height:1.4}.chip{width:56px;height:56px;border-radius:10px;flex:none;border:1px solid var(--hair)}
+.sw-sm .chip{width:36px;height:36px;border-radius:8px}
+.icons{display:flex;gap:28px;align-items:flex-end;flex-wrap:wrap}.icons figure{margin:0;text-align:center;font-size:12px;color:var(--muted)}.icons figure>:first-child{display:block;margin:0 auto 8px}
+.dont{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.dont .card{padding:14px;text-align:center;font-size:13px}.dont .fig{height:76px;display:grid;place-items:center;margin:2px 0 10px}.dont b{color:var(--down)}
+.rule{display:grid;grid-template-columns:170px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--hair);font-size:14px}.rule:last-child{border-bottom:0}.rule b{font-weight:600}
+.tt{display:flex;flex-direction:column;gap:16px}.tt .row{display:grid;grid-template-columns:210px 1fr;gap:16px;align-items:baseline}.tt .row>.mono{color:var(--muted);font-size:11px}
+table.files{width:100%;border-collapse:collapse;font-size:13.5px}table.files td{padding:10px 14px 10px 0;border-bottom:1px solid var(--hair);vertical-align:top}table.files tr:last-child td{border-bottom:0}table.files td:first-child{width:36%}
+ul.loose{margin:0;padding-left:18px}ul.loose li{margin:6px 0;font-size:14px}
+footer{margin-top:80px;font-size:12px;color:var(--muted)}
+@media(max-width:800px){.g2,.g3{grid-template-columns:1fr}.dont{grid-template-columns:1fr 1fr}header nav{display:none}.rule,.tt .row{grid-template-columns:1fr}}
+body{font-size:14px;line-height:1.6}code,.mono{font-size:.92em}
+::selection{background:#c8f56a;color:#000}a{color:#c8f56a}
+h1{font-size:52px;letter-spacing:-.02em}h2{letter-spacing:-.01em;font-weight:600}h3{font-family:var(--disp);font-weight:600}
+.lede{font-size:16px}
+.label{font-size:12px;font-weight:400;letter-spacing:.06em}
+.wm{font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:#c8f56a}.wm small{font:400 12px/1.2 var(--mono);color:#a3a3a3;margin-top:4px}
+.rule b{font-family:var(--disp);font-weight:600}
+.stat{background:#1c1c1c;border:1px solid #333;border-radius:8px;padding:14px 16px;margin-top:10px}
+.stat .v{font-family:var(--disp);font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-bottom:5px}
+.stat .l{font-size:12px;color:#a3a3a3;letter-spacing:.06em;text-transform:uppercase}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.tags span{font-size:12px;padding:5px 10px;border:1px solid #454545;border-radius:4px;color:#a3a3a3}
+.tags .on{border-color:#c8f56a;color:#c8f56a;background:rgba(200,245,106,.13)}.tags .bad{border-color:#ff7a7a;color:#ff7a7a;background:rgba(255,107,107,.13)}
+.hm{display:grid;grid-template-columns:repeat(14,12px);gap:3px;margin-top:14px}.hm i{width:12px;height:12px;border-radius:2px;background:#242424;border:1px solid #333}
+.hm .p{background:#c8f56acc;border:0}.hm .n{background:#ff6b6bcc;border:0}.hm .b{background:#ffc16680;border:0}
+</style></head><body>
+<header><div class="wrap"><div class="brandbox"><svg viewBox="0 0 512 512" width="32" height="32" style="display:block"><rect width="512" height="512" rx="96" fill="#141414"/><path d="M96 352 L192 256 L272 312 L408 168" fill="none" stroke="#c8f56a" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/><circle cx="408" cy="168" r="30" fill="#c8f56a"/><path d="M96 416 H416" stroke="#454545" stroke-width="16" stroke-linecap="round"/></svg></div><div class="wm">Trade Journal<small>Design guide · v1</small></div>
+<nav><a href="#mark">Mark</a><a href="#colour">Colour</a><a href="#type">Type</a><a href="#motifs">Motifs</a><a href="#voice">Voice</a><a href="#assets">Assets</a><a href="#code">Code</a></nav></div></header>
+<div class="wrap">
+<h1>See where the money goes.</h1>
+<p class="lede">Trade Journal already has a look: a charcoal ground, warm off-white text, one lime that means both <i>this</i> and <i>won</i>, red for losses, Syne for titles and numbers, DM Mono for everything else. This guide names it so the app and the GitLab repo stay the same product. It invents nothing.</p>
+<p class="lede small muted">Every colour below is a token in <code>src/style.css</code> at v0.1.1. The app is dark only. The headline is the manifest's own line: <i>Log each trade with what you felt and what you did wrong, then see where the money goes.</i></p>
+
+<h2 id="mark">The mark</h2>
+<p>A lime line that climbs, dips once and climbs again to a dot at the top right, over a grey baseline, on a charcoal rounded square. <code>public/icon.svg</code> is the source and the favicon; the PNGs are rasters of the same drawing.</p>
+<div class="card"><div class="icons"><figure><svg viewBox="0 0 512 512" width="128" height="128" style="display:block"><rect width="512" height="512" rx="96" fill="#141414"/><path d="M96 352 L192 256 L272 312 L408 168" fill="none" stroke="#c8f56a" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/><circle cx="408" cy="168" r="30" fill="#c8f56a"/><path d="M96 416 H416" stroke="#454545" stroke-width="16" stroke-linecap="round"/></svg><figcaption>icon.svg · source</figcaption></figure><figure><img src="../../public/icon-maskable-512.png" width="128" height="128" alt="" style="border-radius:22%"><figcaption>icon-maskable-512</figcaption></figure><figure><svg viewBox="0 0 512 512" width="64" height="64" style="display:block"><rect width="512" height="512" rx="96" fill="#141414"/><path d="M96 352 L192 256 L272 312 L408 168" fill="none" stroke="#c8f56a" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/><circle cx="408" cy="168" r="30" fill="#c8f56a"/><path d="M96 416 H416" stroke="#454545" stroke-width="16" stroke-linecap="round"/></svg><figcaption>64</figcaption></figure><figure><span style="display:flex;gap:10px;align-items:flex-end"><svg viewBox="0 0 512 512" width="32" height="32" style="display:block"><rect width="512" height="512" rx="96" fill="#141414"/><path d="M96 352 L192 256 L272 312 L408 168" fill="none" stroke="#c8f56a" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/><circle cx="408" cy="168" r="30" fill="#c8f56a"/><path d="M96 416 H416" stroke="#454545" stroke-width="16" stroke-linecap="round"/></svg><svg viewBox="0 0 512 512" width="16" height="16" style="display:block"><rect width="512" height="512" rx="96" fill="#141414"/><path d="M96 352 L192 256 L272 312 L408 168" fill="none" stroke="#c8f56a" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/><circle cx="408" cy="168" r="30" fill="#c8f56a"/><path d="M96 416 H416" stroke="#454545" stroke-width="16" stroke-linecap="round"/></svg></span><figcaption>favicon · 32 · 16</figcaption></figure></div></div>
+<div class="grid g2" style="margin-top:16px"><div class="card"><h3>Construction</h3><p class="small">A 512 grid with 96 corners (18.75%). The line runs 96,352 → 192,256 → 272,312 → 408,168 at stroke 40 with round caps and joins, and ends in a dot of radius 30. The baseline runs 96 → 416 at y 416, stroke 16. Three colours, all tokens: <code>--bg</code> <code>#141414</code>, <code>--accent</code> <code>#c8f56a</code>, <code>--border2</code> <code>#454545</code>.</p></div><div class="card"><h3>Where it sits</h3><p class="small"><code>icon.svg</code> is the favicon. <code>icon-192.png</code> is the apple-touch-icon and a manifest icon; <code>icon-512.png</code> and <code>icon-maskable-512.png</code> fill the rest of the manifest. The README opens with <code>icon-512</code> at 88px. Inside the app the sidebar shows the name only.</p></div></div>
+<div class="label">Wordmark</div>
+<div class="grid g2"><div class="card" style="display:grid;place-items:center;min-height:150px;background:#1c1c1c;justify-items:start;padding:22px 22px 16px"><div><div class="wm" style="font-size:15px">Trade Journal</div><div style="font-size:12px;color:#a3a3a3;margin-top:4px">This device</div></div></div><div class="card" style="display:grid;place-items:center;min-height:150px;background:linear-gradient(160deg,#2b3340,#11151c)"><div style="display:grid;justify-items:center;gap:8px"><svg viewBox="0 0 512 512" width="64" height="64" style="display:block"><rect width="512" height="512" rx="96" fill="#141414"/><path d="M96 352 L192 256 L272 312 L408 168" fill="none" stroke="#c8f56a" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/><circle cx="408" cy="168" r="30" fill="#c8f56a"/><path d="M96 416 H416" stroke="#454545" stroke-width="16" stroke-linecap="round"/></svg><span style="font:500 12px -apple-system,'Segoe UI',Roboto,sans-serif;color:#f4f1ec">Journal</span></div></div></div>
+<p class="small muted">Syne Bold, uppercase, 15px, tracking +6%, in lime, with a DM Mono sub-line in muted grey underneath (left, the sidebar as built). The sub-line says where trades are saved: Demo, This device or Google Sheet. On the right, the installed app: the icon over its short name, Journal. The full name is Trade Journal; the repo is <code>futuretracker</code> and the site futuretracker.ethantam.dev.</p>
+<div class="label">Don't</div>
+<div class="dont"><div class="card"><div class="fig"><svg viewBox="0 0 512 512" width="64" height="64" style="display:block"><rect width="512" height="512" rx="96" fill="#141414"/><path d="M96 352 L192 256 L272 312 L408 168" fill="none" stroke="#ff7a7a" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/><circle cx="408" cy="168" r="30" fill="#ff7a7a"/><path d="M96 416 H416" stroke="#454545" stroke-width="16" stroke-linecap="round"/></svg></div><b>Don't</b> make the line red. Red is a loss here; a red mark reads as a losing day.</div><div class="card"><div class="fig"><svg viewBox="0 0 512 512" width="64" height="64" style="display:block"><rect width="512" height="512" rx="96" fill="#f4f1ec"/><path d="M96 352 L192 256 L272 312 L408 168" fill="none" stroke="#c8f56a" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/><circle cx="408" cy="168" r="30" fill="#c8f56a"/><path d="M96 416 H416" stroke="#cccccc" stroke-width="16" stroke-linecap="round"/></svg></div><b>Don't</b> put it on a light ground. The app is dark only, and the baseline is a dark-theme border grey.</div><div class="card"><div class="fig"><svg viewBox="0 0 512 512" width="64" height="64" style="display:block"><rect width="512" height="512" rx="96" fill="#141414"/><path d="M96 352 L192 256 L272 312 L408 168" fill="none" stroke="#7ec8f7" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/><circle cx="408" cy="168" r="30" fill="#7ec8f7"/><path d="M96 416 H416" stroke="#454545" stroke-width="16" stroke-linecap="round"/></svg></div><b>Don't</b> swap the lime for the blue. Blue is for contract names and pending states.</div><div class="card"><div class="fig"><span style="font:700 18px Syne,sans-serif;color:#f4f1ec">Trade journal</span></div><b>Don't</b> set the name in sentence case or plain white. The wordmark is lime capitals.</div></div>
+
+<h2 id="colour">Colour</h2>
+<p>Charcoal greys do the work and the text is a warm off-white, not pure white. Lime is the accent and also the colour of a win, so it marks both what you picked and what went right. Red is a loss or a mistake, amber is breakeven, blue is for contract names and anything still pending. Each has a 13% tint for selected backgrounds.</p>
+<div class="card"><div class="grid g3"><div class="sw"><div class="chip" style="background:#141414"></div><div><b>Ground</b> <code>--bg</code><br><code>#141414</code><br><span class="muted">Page, theme colour, icon ground</span></div></div><div class="sw"><div class="chip" style="background:#1c1c1c"></div><div><b>Surface</b> <code>--surface</code><br><code>#1c1c1c</code><br><span class="muted">Sidebar, stat cards</span></div></div><div class="sw"><div class="chip" style="background:#242424"></div><div><b>Surface 2</b> <code>--surface2</code><br><code>#242424</code><br><span class="muted">Inputs, account switch, empty heatmap days</span></div></div><div class="sw"><div class="chip" style="background:#333"></div><div><b>Border</b> <code>--border</code><br><code>#333</code><br><span class="muted">Card edges, dividers</span></div></div><div class="sw"><div class="chip" style="background:#454545"></div><div><b>Border 2</b> <code>--border2</code><br><code>#454545</code><br><span class="muted">Tag outlines, scrollbar, the icon's baseline</span></div></div><div class="sw"><div class="chip" style="background:#f4f1ec"></div><div><b>Text</b> <code>--text</code><br><code>#f4f1ec</code><br><span class="muted">Warm off-white</span></div></div><div class="sw"><div class="chip" style="background:#a3a3a3"></div><div><b>Muted</b> <code>--muted</code><br><code>#a3a3a3</code><br><span class="muted">Labels, sub-lines</span></div></div><div class="sw"><div class="chip" style="background:#8c8c8c"></div><div><b>Muted 2</b> <code>--muted2</code><br><code>#8c8c8c</code><br><span class="muted">Placeholders</span></div></div><div class="sw"><div class="chip" style="background:#c8f56a"></div><div><b>Lime</b> <code>--accent</code><br><code>#c8f56a</code><br><span class="muted">Wordmark, links, focus, selected tags, wins, positive P&amp;L, primary button</span></div></div><div class="sw"><div class="chip" style="background:#ff7a7a"></div><div><b>Red</b> <code>--red</code><br><code>#ff7a7a</code><br><span class="muted">Losses, negative P&amp;L, selected mistakes</span></div></div><div class="sw"><div class="chip" style="background:#ffc166"></div><div><b>Amber</b> <code>--amber</code><br><code>#ffc166</code><br><span class="muted">Breakeven</span></div></div><div class="sw"><div class="chip" style="background:#7ec8f7"></div><div><b>Blue</b> <code>--blue</code><br><code>#7ec8f7</code><br><span class="muted">Contract names, pending</span></div></div></div></div>
+<div class="label">Tints (13%)</div><div class="card"><div class="grid g3"><div class="sw sw-sm"><div class="chip" style="background:rgba(200,245,106,.13)"></div><div><b>Lime tint</b> <code>--accent-dim</code><br><code>rgba(200,245,106,.13)</code></div></div><div class="sw sw-sm"><div class="chip" style="background:rgba(255,107,107,.13)"></div><div><b>Red tint</b> <code>--red-dim</code><br><code>rgba(255,107,107,.13)</code></div></div><div class="sw sw-sm"><div class="chip" style="background:rgba(255,193,102,.13)"></div><div><b>Amber tint</b> <code>--amber-dim</code><br><code>rgba(255,193,102,.13)</code></div></div><div class="sw sw-sm"><div class="chip" style="background:rgba(126,200,247,.13)"></div><div><b>Blue tint</b> <code>--blue-dim</code><br><code>rgba(126,200,247,.13)</code></div></div></div><p class="small muted" style="margin:14px 0 0">Behind selected tags and outcome buttons. Heatmap days use stronger fills: lime and red at 80%, amber at 50%.</p></div>
+<p class="small muted">The primary button is lime with black text, and its hover is a brighter lime (<code>#d4ff70</code>). Text selection is lime on black.</p>
+
+<h2 id="type">Type</h2>
+<p>Two faces from Google Fonts. Syne (500 to 700) for the wordmark, page titles, symbols and every big number. DM Mono (300 to 500) for everything else, body included, at a 14px base. Labels are uppercase with +6% tracking (<code>--track</code>).</p>
+<div class="card tt"><div class="row"><span class="mono">Wordmark · Syne 700 · 15 · upper · +6%</span><span><span class="wm">Trade Journal</span></span></div><div class="row"><span class="mono">Page title · Syne 600 · 20 · −1%</span><span><span style="font-family:var(--disp);font-size:20px;font-weight:600;letter-spacing:-.01em">Log Trade</span></span></div><div class="row"><span class="mono">Stat value · Syne 700 · 24 · −2%</span><span><span style="font-family:var(--disp);font-size:24px;font-weight:700;letter-spacing:-.02em;color:#c8f56a">+$1,204</span></span></div><div class="row"><span class="mono">Symbol · Syne 600 · 13</span><span><span style="font-family:var(--disp);font-size:13px;font-weight:600">MNQ &nbsp; MES &nbsp; MGC</span></span></div><div class="row"><span class="mono">Body · DM Mono 400 · 14</span><span><span>Log each trade with its setup, what you felt and what you did wrong.</span></span></div><div class="row"><span class="mono">Label · DM Mono 400 · 12 · upper · +6%</span><span><span style="font-size:12px;color:#a3a3a3;letter-spacing:.06em;text-transform:uppercase">Profit factor</span></span></div></div>
+<p class="small muted">Numbers in the specimens are samples, not results.</p>
+
+<h2 id="motifs">Motifs</h2>
+<p>Three things the app already draws. Use them, not stock charts.</p>
+<div class="grid g3"><div class="card"><h3>The stat card</h3><div class="stat"><div class="v" style="color:#c8f56a">+$1,204</div><div class="l">Net P&amp;L</div></div><div class="stat"><div class="v">1.42</div><div class="l">Profit factor</div></div><p class="small muted" style="margin:12px 0 0">A surface card with an 8px corner, a big Syne number and a mono capital label. Lime or red only when the number is a result.</p></div><div class="card"><h3>Tags</h3><div class="tags"><span class="on">VWAP reclaim</span><span>ORB</span><span>Breakout</span></div><div class="tags"><span class="bad">Chased entry</span><span>Moved stop</span><span>None</span></div><p class="small muted" style="margin:12px 0 0">Outlined, 4px corners. A picked setup lights lime; a picked mistake lights red. The names are the app's own lists.</p></div><div class="card"><h3>The heatmap</h3><div class="hm"><i class="p"></i><i class="n"></i><i class="p"></i><i class="b"></i><i class="p"></i><i class=""></i><i class="n"></i><i class="p"></i><i class=""></i><i class="p"></i><i class="p"></i><i class="n"></i><i class="b"></i><i class="p"></i><i class=""></i><i class="p"></i><i class="n"></i><i class="p"></i><i class=""></i><i class="n"></i><i class="p"></i><i class="b"></i><i class="p"></i><i class="n"></i><i class="p"></i><i class="p"></i><i class=""></i><i class="n"></i><i class="p"></i><i class="p"></i><i class=""></i></div><p class="small muted" style="margin:12px 0 0">A day per square, 12px with 2px corners: lime for profit, red for loss, amber for breakeven, an outlined square for no trades.</p></div></div>
+
+<h2 id="voice">Voice</h2>
+<p>From the README, the manifest and the copy already in the app.</p>
+<div class="card"><div class="rule"><b>Name the cost</b><span>Say what a habit costs in money. The stats page has a section called <i>What mistakes cost</i>; the README promises <i>the inconsistency stops being a guess</i>.</span></div><div class="rule"><b>Feelings are data</b><span>The journal asks what you felt and what you did wrong, in plain words, next to the setup and the R multiple.</span></div><div class="rule"><b>Your data stays yours</b><span><i>Trades save to your own Google Sheet or this device, and it works offline.</i></span></div><div class="rule"><b>Demo data in public</b><span>Screenshots use the built-in demo data and say so: <i>Shown with the built-in demo data.</i></span></div><div class="rule"><b>The name</b><span>Trade Journal in full, Journal on the home screen. The repo and address say futuretracker.</span></div></div>
+
+<h2 id="assets">Assets</h2>
+<p>Every file the brand lives in today. Nothing on this page is new artwork.</p>
+<div class="card"><table class="files"><tr><td><code>public/icon.svg</code></td><td>The source drawing; the favicon</td></tr><tr><td><code>public/icon-512.png</code></td><td>Manifest icon; the README's header image</td></tr><tr><td><code>public/icon-192.png</code></td><td>Manifest icon and apple-touch-icon</td></tr><tr><td><code>public/icon-maskable-512.png</code></td><td>Manifest <i>maskable</i></td></tr><tr><td><code>public/manifest.webmanifest</code></td><td>Names (Trade Journal / Journal), charcoal theme and background</td></tr><tr><td><code>src/style.css</code></td><td>Every colour token</td></tr><tr><td><code>docs/screenshots/</code></td><td>README images, demo data</td></tr></table></div>
+<div class="label">Loose ends</div>
+<div class="card"><p class="small muted" style="margin:0 0 6px">Things this guide found and did not change.</p><ul class="loose"><li>The apple-touch-icon is the 192px PNG; iOS asks for 180px and scales it.</li><li>Heatmap and tint reds use <code>#ff6b6b</code>, a step off <code>--red</code> (<code>#ff7a7a</code>).</li><li>No <code>og:</code> tags, so a shared link unfurls without an image.</li></ul></div>
+
+<h2 id="code">Code</h2>
+<p>Copied from the repo as it is, so this page and the app can't drift.</p>
+<div class="label">src/style.css · tokens</div>
+<pre><code>:root {
+  --bg: #141414;
+  --surface: #1c1c1c;
+  --surface2: #242424;
+  --border: #333;
+  --border2: #454545;
+  --text: #f4f1ec;
+  --muted: #a3a3a3;
+  --muted2: #8c8c8c;
+  --accent: #c8f56a;
+  --accent-dim: rgba(200, 245, 106, 0.13);
+  --accent-dim2: rgba(200, 245, 106, 0.07);
+  --red: #ff7a7a;
+  --red-dim: rgba(255, 107, 107, 0.13);
+  --amber: #ffc166;
+  --amber-dim: rgba(255, 193, 102, 0.13);
+  --blue: #7ec8f7;
+  --blue-dim: rgba(126, 200, 247, 0.13);
+  --mono: "DM Mono", ui-monospace, monospace;
+  --display: "Syne", "DM Mono", sans-serif;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 14px;
+  --track: 0.06em;
+  --radius: 8px;
+}</code></pre>
+<div class="label">src/style.css · the wordmark</div>
+<pre><code>.logo-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.logo-sub {
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  margin-top: 4px;
+}</code></pre>
+<div class="label">index.html · head</div>
+<pre><code>&lt;title&gt;Trade Journal&lt;/title&gt;
+&lt;meta name="theme-color" content="#141414"&gt;
+&lt;link rel="icon" href="/icon.svg" type="image/svg+xml"&gt;
+&lt;link rel="apple-touch-icon" href="/icon-192.png"&gt;
+&lt;link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&amp;family=Syne:wght@500;600;700&amp;display=swap" rel="stylesheet"&gt;</code></pre>
+<div class="label">public/icon.svg</div>
+<pre><code>&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"&gt;
+  &lt;rect width="512" height="512" rx="96" fill="#141414"/&gt;
+  &lt;path d="M96 352 L192 256 L272 312 L408 168" fill="none" stroke="#c8f56a" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/&gt;
+  &lt;circle cx="408" cy="168" r="30" fill="#c8f56a"/&gt;
+  &lt;path d="M96 416 H416" stroke="#454545" stroke-width="16" stroke-linecap="round"/&gt;
+&lt;/svg&gt;</code></pre>
+<footer>Trade Journal design guide v1 · 25 Oct 2026 · tokens read from <code>src/style.css</code> at v0.1.1.</footer>
+</div></body></html>
