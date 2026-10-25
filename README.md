@@ -85,3 +85,7 @@ Needs Node 22 (the version Netlify builds with). To deploy, connect the reposito
 ## Legal
 
 See the [privacy policy](public/privacy.html) and [terms](public/terms.html). Released under the [MIT License](LICENSE).
+
+## Security
+
+Found a security problem? See [futuretracker.ethantam.dev/.well-known/security.txt](https://futuretracker.ethantam.dev/.well-known/security.txt), or email contact@ethantam.dev.
