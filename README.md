@@ -31,7 +31,7 @@ A futures trading journal for MES, MNQ, MGC and XAUUSD. Log each trade with its 
 
 Settings (names only): `VITE_GOOGLE_CLIENT_ID` (optional), the Google OAuth client ID. Without it the build uses the ID the live site has always used. Its authorised JavaScript origins in Google Cloud Console must include the live address.
 
-> **About this source.** The original source was only on GitHub, and that account was suspended in October 2026. This code was rebuilt on 19 Oct 2026 from the live site's built files. The names, comments and file layout are new, but the behaviour is the same: the rebuilt app was checked against the live one in demo mode, screen by screen (139 screens, including charts pixel for pixel, logging a trade, and the first-run setup screen), with no differences.
+> **About this source.** The original source was only on GitHub, and that account was suspended in October 2026. This code was rebuilt on 19 Oct 2026 from the live site's built files. The account came back on 28 Oct 2026, and the original source is now kept on the tag [`archive/github-main-2026-10-17`](https://gitlab.com/eatentam/futuretracker/-/tree/archive/github-main-2026-10-17) for reference; `main` (this rebuild) is the one to work on. The names, comments and file layout are new, but the behaviour is the same: the rebuilt app was checked against the live one in demo mode, screen by screen (139 screens, including charts pixel for pixel, logging a trade, and the first-run setup screen), with no differences.
 
 ## Features
 
