@@ -27,7 +27,7 @@ A futures trading journal for MES, MNQ, MGC and XAUUSD. Log each trade with its 
 | **Hosting** | Netlify site `futuretracker`: build `npm run build`, publish `dist` (set in `netlify.toml`) |
 | **Data** | Your own Google Drive (Google sign-in, `drive.file` scope), a Google Sheet through your own Apps Script, or this device (`localStorage` / IndexedDB) |
 | **Run locally** | `npm install && npm run dev`, then open http://localhost:5173 (add `?demo` for demo data) |
-| **Source** | [gitlab.com/eatentam/futuretracker](https://gitlab.com/eatentam/futuretracker) |
+| **Source** | [gitlab.com/eatentam/futuretracker](https://gitlab.com/eatentam/futuretracker). Read-only mirror: [github.com/Ethosan/futuretracker](https://github.com/Ethosan/futuretracker), which GitLab updates on every push |
 
 Settings (names only): `VITE_GOOGLE_CLIENT_ID` (optional), the Google OAuth client ID. Without it the build uses the ID the live site has always used. Its authorised JavaScript origins in Google Cloud Console must include the live address.
 
