@@ -30,8 +30,20 @@ function jsonp(url, timeoutMs = 12000) {
   });
 }
 
-export function appsScriptStore(scriptUrl) {
-  const read = () => jsonp(scriptUrl + "?v=" + Date.now()),
+// The shared key goes in the URL because JSONP cannot send headers. It is a revocable
+// URL secret: it shows up in Google's logs, so change it in Script Properties if it leaks.
+export const keyParam = (key) => (key ? "&key=" + encodeURIComponent(key) : "");
+
+// The script answers { status: "unauthorized" } when the key is missing or wrong.
+export function checkAuth(res) {
+  if (res && res.status === "unauthorized") {
+    throw new Error("The Apps Script rejected the shared key. Check the key in Settings matches KEY in Script Properties.");
+  }
+  return res;
+}
+
+export function appsScriptStore(scriptUrl, key = "") {
+  const read = async () => checkAuth(await jsonp(scriptUrl + "?v=" + Date.now() + keyParam(key))),
     send = (action, data) => {
       const payload = encodeURIComponent(
         JSON.stringify({
@@ -43,7 +55,7 @@ export function appsScriptStore(scriptUrl) {
             : data),
         }),
       );
-      return jsonp(scriptUrl + "?payload=" + payload + "&v=" + Date.now());
+      return jsonp(scriptUrl + "?payload=" + payload + "&v=" + Date.now() + keyParam(key)).then(checkAuth);
     };
   return {
     async ensureHeaders() {

@@ -3,8 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Trade Journal</title>
+<title>Trade Journal: Futures Journal for MES, MNQ and Gold</title>
 <meta name="description" content="A personal futures trading journal for MES, MNQ, MGC and XAUUSD. Saves to your own Google Sheet or this device. Try the demo.">
+<link rel="canonical" href="https://futuretracker.ethantam.dev/">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Trade Journal">
+<meta property="og:title" content="Trade Journal: Futures Journal for MES, MNQ and Gold">
+<meta property="og:description" content="A personal futures trading journal for MES, MNQ, MGC and XAUUSD. Saves to your own Google Sheet or this device. Try the demo.">
+<meta property="og:url" content="https://futuretracker.ethantam.dev/">
+<meta property="og:image" content="https://futuretracker.ethantam.dev/icon-512.png">
+<meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#141414">
 <meta name="color-scheme" content="dark">
 <meta name="mobile-web-app-capable" content="yes">
@@ -26,7 +35,7 @@
 <div id="setup-screen" hidden>
   <form class="setup-box" id="setup-form" novalidate>
     <div class="setup-logo">Trade Journal</div>
-    <h1 class="setup-title">Get started</h1>
+    <h1 class="setup-title">Futures trading journal</h1>
     <p class="setup-sub">A futures trading journal for MES, MNQ, MGC and XAUUSD. Log each trade with what you felt and what you did wrong, then see where the money goes. Live and Prop accounts are tracked separately.</p>
 
     <div class="google-start" id="google-start" hidden>
@@ -99,6 +108,9 @@
         <p class="step-desc">Saved on this device only. Everyone sets up their own sheet.</p>
         <div class="step-input"><input id="s-script-url" type="url" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" required></div>
         <p class="setup-error" id="err1" hidden>Enter the Apps Script Web App URL (it starts with https://script.google.com/).</p>
+        <label class="step-title" for="s-script-key">Shared key (optional)</label>
+        <p class="step-desc">The same text you set as KEY in the script's Project Settings > Script Properties. Without it anyone with the URL can read your sheet.</p>
+        <div class="step-input"><input id="s-script-key" type="password" autocomplete="off" placeholder="Long random text"></div>
       </div>
     </div>
 
@@ -525,6 +537,10 @@
         <div class="settings-row" id="set-sheet-row">
           <div><label class="settings-row-lbl" for="set-script-url">Apps Script URL</label><div class="settings-row-sub" id="set-sheet-sub">Your web app endpoint</div></div>
           <input class="settings-input" id="set-script-url" type="url" placeholder="https://script.google.com/..." autocomplete="off">
+        </div>
+        <div class="settings-row" id="set-key-row">
+          <div><label class="settings-row-lbl" for="set-script-key">Shared key</label><div class="settings-row-sub">Matches KEY in Script Properties</div></div>
+          <input class="settings-input" id="set-script-key" type="password" autocomplete="off" placeholder="Long random text">
         </div>
       </section>
 

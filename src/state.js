@@ -84,7 +84,7 @@ function createStore(cfg) {
         opts,
       )
     : cfg?.scriptUrl
-      ? offlineStore(appsScriptStore(cfg.scriptUrl), opts)
+      ? offlineStore(appsScriptStore(cfg.scriptUrl, cfg.scriptKey), opts)
       : null;
 }
 

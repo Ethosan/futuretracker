@@ -23,7 +23,7 @@ import {
 } from "../state.js";
 import { LOCAL_TRADES_KEY } from "../stores/local.js";
 import { tradeToRow } from "../trade.js";
-import { $, setSync, toast, withSpinner } from "../ui.js";
+import { $, setPageInert, setSync, toast, withSpinner } from "../ui.js";
 import { renderCopyTraderTags } from "./log-trade.js";
 import APPS_SCRIPT_SOURCE from "../apps-script.gs?raw";
 
@@ -48,7 +48,8 @@ function updateSetupSteps() {
 
 async function connectScript() {
   const url = $("s-script-url").value.trim(),
-    imgbbKey = $("s-imgbb-key").value.trim();
+    imgbbKey = $("s-imgbb-key").value.trim(),
+    scriptKey = $("s-script-key").value.trim();
   $("err1").hidden = true;
   $("err-main").hidden = true;
   if (!isScriptUrl(url)) {
@@ -60,6 +61,7 @@ async function connectScript() {
   saveConfig({
     ...withoutMode(previous),
     scriptUrl: url,
+    scriptKey,
     imgbbKey,
   });
   try {
@@ -331,6 +333,7 @@ function openSettings() {
   $("set-mode-note").textContent = MODE_NOTES[mode];
   $("set-mode-note").hidden = !MODE_NOTES[mode];
   $("set-sheet-row").hidden = mode === "demo" || mode === "google";
+  $("set-key-row").hidden = $("set-sheet-row").hidden;
   $("set-open-sheet-wrap").hidden = mode !== "google";
   $("move-google").hidden = !MOVE_NOTES[mode];
   $("move-note").textContent = MOVE_NOTES[mode] || "";
@@ -356,10 +359,12 @@ function openSettings() {
     }[mode] ||
     "Clears the settings on this device. Your trades in Google Sheets are safe.";
   $("set-script-url").value = state.cfg.scriptUrl || "";
+  $("set-script-key").value = state.cfg.scriptKey || "";
   $("set-imgbb-key").value = state.cfg.imgbbKey || "";
   renderCopyTraderList();
   $("settings-overlay").classList.add("open");
   $("settings-overlay").setAttribute("aria-hidden", "false");
+  setPageInert(true);
   $("settings-body").scrollTop = 0;
   $("settings-close").focus();
 }
@@ -368,6 +373,7 @@ function closeSettings() {
   if ($("settings-overlay").classList.contains("open")) {
     $("settings-overlay").classList.remove("open");
     $("settings-overlay").setAttribute("aria-hidden", "true");
+    setPageInert(false);
     settingsReturnFocus?.focus?.();
   }
 }
@@ -378,7 +384,8 @@ function saveSettings({ onReconnect }) {
       imgbbKey: $("set-imgbb-key").value.trim(),
       timezone: $("set-timezone").value,
     },
-    scriptUrl = $("set-script-url").value.trim();
+    scriptUrl = $("set-script-url").value.trim(),
+    scriptKey = $("set-script-key").value.trim();
   let reconnect = false;
   if (
     mode === "demo" ||
@@ -402,7 +409,10 @@ function saveSettings({ onReconnect }) {
     ) {
       return;
     }
-    reconnect = scriptUrl !== state.cfg.scriptUrl || mode === "local";
+    reconnect =
+      scriptUrl !== state.cfg.scriptUrl ||
+      scriptKey !== (state.cfg.scriptKey || "") ||
+      mode === "local";
     if (reconnect && mode === "sheet") {
       const pending = pendingCount();
       if (
@@ -419,6 +429,7 @@ function saveSettings({ onReconnect }) {
       ...withoutMode(state.cfg),
       ...changes,
       scriptUrl,
+      scriptKey,
     });
   }
   $("logo-sub").textContent = modeLabel();
