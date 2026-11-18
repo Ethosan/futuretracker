@@ -1,0 +1,10 @@
+# Checks only: the site deploys from Cloudflare/Netlify's own build. Runs on merge requests and main.
+verify:
+  image: node:22
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - npm ci
+    - npm test
+    - npm run build

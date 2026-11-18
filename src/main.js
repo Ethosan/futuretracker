@@ -1,4 +1,4 @@
-declare const __APP_VERSION__: string;
+/* global __APP_VERSION__ */
 // App start-up: connects storage, wires the screens together and handles navigation.
 import "./style.css";
 import { REFRESH_AFTER_MS } from "./constants.js";

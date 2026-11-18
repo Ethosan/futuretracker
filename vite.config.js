@@ -1,6 +1,10 @@
 import { defineConfig } from "vite";
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Files from public/ the service worker saves for offline use (screenshots are left out).
 const PUBLIC_PRECACHE = ["icon-192.png", "icon-512.png", "icon-maskable-512.png", "icon.svg", "manifest.webmanifest", "privacy.html", "terms.html"];
@@ -22,8 +26,6 @@ function serviceWorker() {
   };
 }
 
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 const pkg = JSON.parse(readFileSync(resolve(__dirname, "package.json"), "utf-8"));
 
 export default defineConfig({
