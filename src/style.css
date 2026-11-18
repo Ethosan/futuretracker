@@ -3,7 +3,8 @@
   --surface: #1c1c1c;
   --surface2: #242424;
   --border: #333;
-  --border2: #454545;
+  --ds-line-strong: #7a7a7a; /* control edges: 3:1 or better on the surfaces */
+  --border2: var(--ds-line-strong);
   --text: #f4f1ec;
   --muted: #a3a3a3;
   --muted2: #8c8c8c;
@@ -2265,5 +2266,54 @@ button.hm-cell:focus-visible {
     left: 16px;
     right: 16px;
     bottom: 80px;
+  }
+}
+
+/* Audit 2026-11: press feedback, bigger touch targets, solid fallback without blur. */
+.btn:active,
+.icon-btn:active,
+.tag:active,
+.conf-btn:active,
+.acct-btn:active,
+.review-btn:active,
+.settings-close:active,
+.nav-item:active {
+  transform: scale(0.97);
+}
+.btn:disabled,
+.tag:disabled,
+.conf-btn:disabled,
+.acct-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+@media (pointer: coarse) {
+  .btn,
+  .tag,
+  .acct-btn,
+  .icon-btn,
+  .icon-btn.danger,
+  .settings-close,
+  .review-btn,
+  .conf-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .conf-btn {
+    width: 44px;
+    height: 44px;
+  }
+  .icon-btn,
+  .icon-btn.danger {
+    width: 44px;
+    height: 44px;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .mobile-bar,
+  .top-stack {
+    background: #141414;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://futuretracker.ethantam.dev/sitemap.xml

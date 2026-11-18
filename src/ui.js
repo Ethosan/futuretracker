@@ -1,6 +1,14 @@
 // Small UI helpers: toast, sync status, button spinners and toggle-button groups.
 export const $ = (id) => document.getElementById(id);
 
+// While a sheet is open the page behind it is inert: Tab and screen readers stay inside the sheet.
+export function setPageInert(on) {
+  const page = $("app");
+  if (page) {
+    page.inert = !!on;
+  }
+}
+
 let toastTimer = null;
 
 export function toast(message, isError = false) {

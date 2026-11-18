@@ -3,7 +3,7 @@ import { duration, esc, money, plural, posNeg, timeIn } from "../format.js";
 import { showImage } from "../screenshots.js";
 import { state, tradeById, visibleTrades } from "../state.js";
 import { minutesBetween, rMultipleOf } from "../trade.js";
-import { $ } from "../ui.js";
+import { $, setPageInert } from "../ui.js";
 
 let onEdit = () => {};
 
@@ -20,6 +20,7 @@ function openPanel() {
   $("review-panel").classList.add("open");
   $("review-panel").setAttribute("aria-hidden", "false");
   document.body.classList.add("no-scroll");
+  setPageInert(true);
   $("review-close").focus();
 }
 
@@ -29,6 +30,7 @@ export function closeReview() {
     $("review-panel").classList.remove("open");
     $("review-panel").setAttribute("aria-hidden", "true");
     document.body.classList.remove("no-scroll");
+    setPageInert(false);
     returnFocus?.focus?.();
   }
 }
